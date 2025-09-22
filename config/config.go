@@ -14,6 +14,7 @@ type Config struct {
 	Database DatabaseConfig
 	JWT      JWTConfig
 	Mail     MailConfig
+	Redis    RedisConfig
 }
 
 type AppConfig struct {
@@ -47,6 +48,15 @@ type MailConfig struct {
 	Username string
 	Password string
 	From     string
+}
+
+type RedisConfig struct {
+	Host       string
+	Port       string
+	Password   string
+	DB         int
+	MaxRetries int
+	PoolSize   int
 }
 
 func LoadConfig() *Config {
@@ -85,6 +95,14 @@ func LoadConfig() *Config {
 			Username: getEnv("MAIL_USERNAME", ""),
 			Password: getEnv("MAIL_PASSWORD", ""),
 			From:     getEnv("MAIL_FROM", "noreply@example.com"),
+		},
+		Redis: RedisConfig{
+			Host:       getEnv("REDIS_HOST", "localhost"),
+			Port:       getEnv("REDIS_PORT", "6379"),
+			Password:   getEnv("REDIS_PASSWORD", ""),
+			DB:         getEnvAsInt("REDIS_DB", 0),
+			MaxRetries: getEnvAsInt("REDIS_MAX_RETRIES", 3),
+			PoolSize:   getEnvAsInt("REDIS_POOL_SIZE", 10),
 		},
 	}
 

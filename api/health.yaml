@@ -291,6 +291,8 @@ components:
               $ref: '#/components/schemas/AppInfo'
             database:
               $ref: '#/components/schemas/DatabaseStatus'
+            redis:
+              $ref: '#/components/schemas/RedisStatus'
             system:
               $ref: '#/components/schemas/SystemInfo'
             timestamp:
@@ -336,6 +338,15 @@ components:
                 error:
                   type: string
                   example: "Koneksi database terputus"
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "error"
+                error:
+                  type: string
+                  example: "Koneksi Redis tidak tersedia"
             system:
               $ref: '#/components/schemas/SystemInfo'
             timestamp:
@@ -373,6 +384,8 @@ components:
               $ref: '#/components/schemas/DetailedSystemInfo'
             database:
               $ref: '#/components/schemas/DetailedDatabaseStatus'
+            redis:
+              $ref: '#/components/schemas/RedisStatus'
             http:
               $ref: '#/components/schemas/HttpMetrics'
         timestamp:
@@ -469,6 +482,41 @@ components:
         max_connections:
           type: integer
           example: 100
+
+    RedisStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [connected, disconnected, error]
+          example: "connected"
+        ping_time:
+          type: string
+          example: "1ms"
+        connected_clients:
+          type: integer
+          example: 2
+        used_memory:
+          type: string
+          example: "1.2MB"
+        max_memory:
+          type: string
+          example: "100MB"
+        keyspace_hits:
+          type: integer
+          example: 1500
+        keyspace_misses:
+          type: integer
+          example: 50
+        total_commands_processed:
+          type: integer
+          example: 2500
+        name:
+          type: string
+          example: "Redis"
+        version:
+          type: string
+          example: "7.0.0"
 
     DetailedDatabaseStatus:
       type: object
@@ -589,7 +637,7 @@ components:
             ping_time:
               type: string
               example: "2ms"
-        cache:
+        redis:
           type: object
           properties:
             name:

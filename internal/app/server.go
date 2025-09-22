@@ -11,10 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func NewServer(cfg *config.Config, db *gorm.DB) *fiber.App {
+func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return helper.SendInternalServerErrorResponse(c)
@@ -32,11 +33,12 @@ func NewServer(cfg *config.Config, db *gorm.DB) *fiber.App {
 	userRepo := repo.NewUserRepository(db)
 	refreshTokenRepo := repo.NewRefreshTokenRepository(db)
 	resetTokenRepo := repo.NewPasswordResetTokenRepository(db)
+	// redisRepo := repo.NewRedisRepository(rdb) // Ready for use when needed
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
 
-	healthUsecase := usecase.NewHealthUsecase(db, cfg)
+	healthUsecase := usecase.NewHealthUsecase(db, rdb, cfg)
 	healthController := http.NewHealthController(healthUsecase)
 
 	api := app.Group("/api/v1")
