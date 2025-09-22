@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: Fiber Boilerplate API - Anggaran Management
+  description: API dokumentasi untuk sistem manajemen anggaran pada aplikasi Fast Track
+  version: 1.0.0
+  contact:
+    name: Developer Team
+    email: developer@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+
+paths:
+  /anggaran:
+    get:
+      tags:
+        - Anggaran Management
+      summary: Dapatkan daftar anggaran
+      description: Endpoint untuk mendapatkan daftar anggaran per kantong dengan fitur pencarian, pengurutan, dan filter bulan/tahun
+      operationId: getAnggaranList
+      parameters:
+        - name: search
+          in: query
+          description: Pencarian berdasarkan nama kantong
+          schema:
+            type: string
+          example: "Kantong Belanja"
+        - name: sort_by
+          in: query
+          description: Field untuk pengurutan
+          schema:
+            type: string
+            enum: [nama_kantong, rencana, carry_in, penyesuaian, sisa]
+            default: nama_kantong
+        - name: sort_direction
+          in: query
+          description: Arah pengurutan
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: page
+          in: query
+          description: Nomor halaman
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Jumlah item per halaman
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: bulan
+          in: query
+          description: Bulan untuk filtering anggaran (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 9
+        - name: tahun
+          in: query
+          description: Tahun untuk filtering anggaran
+          schema:
+            type: integer
+            minimum: 2020
+          example: 2024
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar anggaran berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnggaranListResponse'
+              example:
+                success: true
+                message: "Daftar anggaran berhasil diambil"
+                code: 200
+                data:
+                  - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                    nama_kantong: "Kantong Belanja"
+                    rencana: 1000000
+                    carry_in: 150000
+                    penyesuaian: -50000
+                    terpakai: 450000
+                    sisa: 650000
+                    progres: 45.0
+                    bulan: 9
+                    tahun: 2024
+                  - kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                    nama_kantong: "Tabungan Darurat"
+                    rencana: null
+                    carry_in: 0
+                    penyesuaian: 0
+                    terpakai: 0
+                    sisa: 0
+                    progres: 0
+                    bulan: 9
+                    tahun: 2024
+                meta:
+                  current_page: 1
+                  total_pages: 3
+                  total_records: 25
+                  per_page: 10
+                timestamp: "2024-09-22T00:00:00Z"
+        '400':
+          description: Request tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Parameter request tidak valid"
+                code: 400
+                errors:
+                  bulan: "Bulan harus antara 1-12"
+                timestamp: "2024-09-22T00:00:00Z"
+        '401':
+          description: Tidak diotorisasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid atau tidak ada"
+                code: 401
+                timestamp: "2024-09-22T00:00:00Z"
+        '500':
+          description: Kesalahan server internal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-09-22T00:00:00Z"
+
+  /anggaran/{kantong_id}:
+    get:
+      tags:
+        - Anggaran Management
+      summary: Dapatkan detail anggaran kantong
+      description: Endpoint untuk mendapatkan detail anggaran kantong tertentu dengan statistik dan informasi lengkap
+      operationId: getAnggaranDetail
+      parameters:
+        - name: kantong_id
+          in: path
+          required: true
+          description: ID kantong yang ingin diambil detail anggarannya
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        - name: bulan
+          in: query
+          description: Bulan untuk filtering anggaran (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 9
+        - name: tahun
+          in: query
+          description: Tahun untuk filtering anggaran
+          schema:
+            type: integer
+            minimum: 2020
+          example: 2024
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Detail anggaran berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnggaranDetailResponse'
+              example:
+                success: true
+                message: "Detail anggaran berhasil diambil"
+                code: 200
+                data:
+                  kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                  nama_kantong: "Kantong Belanja"
+                  detail_kantong:
+                    id: "550e8400-e29b-41d4-a716-446655440001"
+                    id_kartu: "K4N7G1"
+                    nama: "Kantong Belanja"
+                    kategori: "Pengeluaran"
+                    deskripsi: "Untuk keperluan belanja bulanan"
+                    limit: 1000000
+                    saldo: 750000
+                    warna: "Navy"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-01T00:00:00Z"
+                  rencana: 1000000
+                  carry_in: 150000
+                  penyesuaian: -50000
+                  terpakai: 450000
+                  sisa: 650000
+                  progres: 45.0
+                  statistik_bulan:
+                    - tanggal: "2024-09-01T00:00:00Z"
+                      jumlah_transaksi: 3
+                      total_pengeluaran: 125000
+                      akumulasi_terpakai: 125000
+                    - tanggal: "2024-09-02T00:00:00Z"
+                      jumlah_transaksi: 1
+                      total_pengeluaran: 50000
+                      akumulasi_terpakai: 175000
+                  bulan: 9
+                  tahun: 2024
+                timestamp: "2024-09-22T00:00:00Z"
+        '400':
+          description: Request tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Tidak diotorisasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Kantong tidak ditemukan"
+                code: 404
+                timestamp: "2024-09-22T00:00:00Z"
+        '500':
+          description: Kesalahan server internal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /anggaran/penyesuaian:
+    post:
+      tags:
+        - Anggaran Management
+      summary: Buat penyesuaian anggaran
+      description: Endpoint untuk membuat penyesuaian anggaran (menambah atau mengurangi plafon anggaran bulan ini tanpa mengubah limit default kantong)
+      operationId: createPenyesuaianAnggaran
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PenyesuaianAnggaranRequest'
+            example:
+              kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+              jenis: "kurangi"
+              jumlah: 50000
+              bulan: 9
+              tahun: 2024
+      responses:
+        '200':
+          description: Penyesuaian anggaran berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnggaranResponse'
+              example:
+                success: true
+                message: "Penyesuaian anggaran berhasil dibuat"
+                code: 200
+                data:
+                  kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                  nama_kantong: "Kantong Belanja"
+                  rencana: 1000000
+                  carry_in: 150000
+                  penyesuaian: -50000
+                  terpakai: 450000
+                  sisa: 650000
+                  progres: 45.0
+                  bulan: 9
+                  tahun: 2024
+                timestamp: "2024-09-22T00:00:00Z"
+        '400':
+          description: Request tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Data penyesuaian tidak valid"
+                code: 400
+                errors:
+                  jenis: "Jenis harus 'tambah' atau 'kurangi'"
+                  jumlah: "Jumlah harus lebih besar dari 0"
+                timestamp: "2024-09-22T00:00:00Z"
+        '401':
+          description: Tidak diotorisasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Kantong tidak ditemukan"
+                code: 404
+                timestamp: "2024-09-22T00:00:00Z"
+        '500':
+          description: Kesalahan server internal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AnggaranResponse:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: ID kantong
+        nama_kantong:
+          type: string
+          description: Nama kantong
+        rencana:
+          type: number
+          format: float
+          nullable: true
+          description: Nilai rencana anggaran (limit_amount dari kantong)
+        carry_in:
+          type: number
+          format: float
+          description: Sisa anggaran bulan lalu yang dibawa ke bulan ini
+        penyesuaian:
+          type: number
+          format: float
+          description: Jumlah penyesuaian anggaran (bisa negatif untuk pengurangan)
+        terpakai:
+          type: number
+          format: float
+          description: Jumlah anggaran yang sudah terpakai (dari transaksi)
+        sisa:
+          type: number
+          format: float
+          description: Sisa anggaran bulan ini
+        progres:
+          type: number
+          format: float
+          description: Persentase anggaran terpakai
+        bulan:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: Bulan anggaran
+        tahun:
+          type: integer
+          minimum: 2020
+          description: Tahun anggaran
+
+    AnggaranDetailResponse:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: ID kantong
+        nama_kantong:
+          type: string
+          description: Nama kantong
+        detail_kantong:
+          $ref: '#/components/schemas/KantongResponse'
+        rencana:
+          type: number
+          format: float
+          nullable: true
+          description: Nilai rencana anggaran (limit_amount dari kantong)
+        carry_in:
+          type: number
+          format: float
+          description: Sisa anggaran bulan lalu yang dibawa ke bulan ini
+        penyesuaian:
+          type: number
+          format: float
+          description: Jumlah penyesuaian anggaran (bisa negatif untuk pengurangan)
+        terpakai:
+          type: number
+          format: float
+          description: Jumlah anggaran yang sudah terpakai (dari transaksi)
+        sisa:
+          type: number
+          format: float
+          description: Sisa anggaran bulan ini
+        progres:
+          type: number
+          format: float
+          description: Persentase anggaran terpakai
+        statistik_bulan:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatistikHarian'
+          description: Statistik pemakaian harian selama satu bulan
+        bulan:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: Bulan anggaran
+        tahun:
+          type: integer
+          minimum: 2020
+          description: Tahun anggaran
+
+    StatistikHarian:
+      type: object
+      properties:
+        tanggal:
+          type: string
+          format: date-time
+          description: Tanggal statistik
+        jumlah_transaksi:
+          type: integer
+          description: Jumlah transaksi pada tanggal tersebut
+        total_pengeluaran:
+          type: number
+          format: float
+          description: Total pengeluaran pada tanggal tersebut
+        akumulasi_terpakai:
+          type: number
+          format: float
+          description: Akumulasi terpakai sampai tanggal tersebut
+
+    PenyesuaianAnggaranRequest:
+      type: object
+      required:
+        - kantong_id
+        - jenis
+        - jumlah
+        - bulan
+        - tahun
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: ID kantong yang akan disesuaikan anggarannya
+        jenis:
+          type: string
+          enum: [tambah, kurangi]
+          description: Jenis penyesuaian (tambah atau kurangi)
+        jumlah:
+          type: number
+          format: float
+          minimum: 0
+          description: Jumlah nominal penyesuaian
+        bulan:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: Bulan untuk penyesuaian
+        tahun:
+          type: integer
+          minimum: 2020
+          description: Tahun untuk penyesuaian
+
+    KantongResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID unik kantong
+        id_kartu:
+          type: string
+          description: ID kartu kantong (6 karakter)
+        nama:
+          type: string
+          description: Nama kantong
+        kategori:
+          type: string
+          enum: [Pengeluaran, Tabungan, Darurat, Transport, "Tidak Spesifik"]
+          description: Kategori kantong
+        deskripsi:
+          type: string
+          nullable: true
+          description: Deskripsi kantong
+        limit:
+          type: number
+          format: float
+          nullable: true
+          description: Limit anggaran kantong
+        saldo:
+          type: number
+          format: float
+          description: Saldo saat ini
+        warna:
+          type: string
+          enum: [Navy, Glass, Purple, Green, Red]
+          description: Warna tema kantong
+        created_at:
+          type: string
+          format: date-time
+          description: Waktu pembuatan
+        updated_at:
+          type: string
+          format: date-time
+          description: Waktu terakhir diperbarui
+
+    AnggaranListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Daftar anggaran berhasil diambil"
+        code:
+          type: integer
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnggaranResponse'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+        timestamp:
+          type: string
+          format: date-time
+
+    AnggaranDetailResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Detail anggaran berhasil diambil"
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/AnggaranDetailResponse'
+        timestamp:
+          type: string
+          format: date-time
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          description: Halaman saat ini
+        total_pages:
+          type: integer
+          description: Total halaman
+        total_records:
+          type: integer
+          description: Total record
+        per_page:
+          type: integer
+          description: Jumlah item per halaman
+
+    BaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Status keberhasilan response
+        message:
+          type: string
+          description: Pesan response
+        code:
+          type: integer
+          description: HTTP status code
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              description: Detail error
+            timestamp:
+              type: string
+              format: date-time
+              description: Waktu response
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              description: Data response
+            timestamp:
+              type: string
+              format: date-time
+              description: Waktu response

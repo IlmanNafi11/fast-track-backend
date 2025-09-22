@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fiber-boiler-plate/internal/controller/http"
 	"fiber-boiler-plate/internal/domain"
+	"fiber-boiler-plate/internal/usecase"
 	"fmt"
 	"net/http/httptest"
 	"testing"
@@ -46,6 +47,10 @@ func (m *MockKantongUsecase) PatchKantong(id string, req *domain.PatchKantongReq
 func (m *MockKantongUsecase) DeleteKantong(id string, userID uint) error {
 	args := m.Called(id, userID)
 	return args.Error(0)
+}
+
+func (m *MockKantongUsecase) SetAnggaranUsecase(anggaranUsecase usecase.AnggaranUsecase) {
+	// Mock method - tidak perlu implementasi
 }
 
 func setupKantongController() (*fiber.App, *MockKantongUsecase) {

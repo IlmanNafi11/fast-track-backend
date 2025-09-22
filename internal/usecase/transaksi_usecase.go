@@ -18,12 +18,14 @@ type TransaksiUsecase interface {
 	UpdateTransaksi(id string, userID uint, req *domain.UpdateTransaksiRequest) (*domain.TransaksiDetailResponse, error)
 	PatchTransaksi(id string, userID uint, req *domain.PatchTransaksiRequest) (*domain.TransaksiDetailResponse, error)
 	DeleteTransaksi(id string, userID uint) error
+	SetAnggaranUsecase(anggaranUsecase AnggaranUsecase)
 }
 
 type transaksiUsecase struct {
-	transaksiRepo repo.TransaksiRepository
-	kantongRepo   repo.KantongRepository
-	redisRepo     repo.RedisRepository
+	transaksiRepo   repo.TransaksiRepository
+	kantongRepo     repo.KantongRepository
+	redisRepo       repo.RedisRepository
+	anggaranUsecase AnggaranUsecase
 }
 
 func NewTransaksiUsecase(
@@ -32,10 +34,15 @@ func NewTransaksiUsecase(
 	redisRepo repo.RedisRepository,
 ) TransaksiUsecase {
 	return &transaksiUsecase{
-		transaksiRepo: transaksiRepo,
-		kantongRepo:   kantongRepo,
-		redisRepo:     redisRepo,
+		transaksiRepo:   transaksiRepo,
+		kantongRepo:     kantongRepo,
+		redisRepo:       redisRepo,
+		anggaranUsecase: nil,
 	}
+}
+
+func (uc *transaksiUsecase) SetAnggaranUsecase(anggaranUsecase AnggaranUsecase) {
+	uc.anggaranUsecase = anggaranUsecase
 }
 
 func (uc *transaksiUsecase) GetTransaksiList(userID uint, req *domain.TransaksiListRequest) (*domain.TransaksiListResponse, error) {
@@ -130,6 +137,10 @@ func (uc *transaksiUsecase) CreateTransaksi(userID uint, req *domain.CreateTrans
 
 	if err := uc.transaksiRepo.Create(transaksi); err != nil {
 		return nil, err
+	}
+
+	if uc.anggaranUsecase != nil {
+		uc.anggaranUsecase.UpdateAnggaranAfterTransaction(req.KantongID, userID)
 	}
 
 	uc.invalidateUserCache(userID)

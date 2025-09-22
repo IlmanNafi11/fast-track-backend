@@ -36,6 +36,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	redisRepo := repo.NewRedisRepository(rdb)
 	kantongRepo := repo.NewKantongRepository(db, redisRepo)
 	transaksiRepo := repo.NewTransaksiRepository(db)
+	anggaranRepo := repo.NewAnggaranRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -45,6 +46,12 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	transaksiUsecase := usecase.NewTransaksiUsecase(transaksiRepo, kantongRepo, redisRepo)
 	transaksiController := http.NewTransaksiController(transaksiUsecase)
+
+	anggaranUsecase := usecase.NewAnggaranUsecase(anggaranRepo, kantongRepo, transaksiRepo, redisRepo)
+	anggaranController := http.NewAnggaranController(anggaranUsecase)
+
+	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
+	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
 
 	healthUsecase := usecase.NewHealthUsecase(db, rdb, cfg)
 	healthController := http.NewHealthController(healthUsecase)
@@ -76,6 +83,11 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	transaksi.Put("/:id", transaksiController.UpdateTransaksi)
 	transaksi.Patch("/:id", transaksiController.PatchTransaksi)
 	transaksi.Delete("/:id", transaksiController.DeleteTransaksi)
+
+	anggaran := api.Group("/anggaran", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	anggaran.Get("/", anggaranController.GetAnggaranList)
+	anggaran.Get("/:kantong_id", anggaranController.GetAnggaranDetail)
+	anggaran.Post("/penyesuaian", anggaranController.CreatePenyesuaianAnggaran)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

@@ -16,18 +16,25 @@ type KantongUsecase interface {
 	UpdateKantong(id string, req *domain.UpdateKantongRequest, userID uint) (*domain.KantongResponse, error)
 	PatchKantong(id string, req *domain.PatchKantongRequest, userID uint) (*domain.KantongResponse, error)
 	DeleteKantong(id string, userID uint) error
+	SetAnggaranUsecase(anggaranUsecase AnggaranUsecase)
 }
 
 type kantongUsecase struct {
-	kantongRepo repo.KantongRepository
-	userRepo    repo.UserRepository
+	kantongRepo     repo.KantongRepository
+	userRepo        repo.UserRepository
+	anggaranUsecase AnggaranUsecase
 }
 
 func NewKantongUsecase(kantongRepo repo.KantongRepository, userRepo repo.UserRepository) KantongUsecase {
 	return &kantongUsecase{
-		kantongRepo: kantongRepo,
-		userRepo:    userRepo,
+		kantongRepo:     kantongRepo,
+		userRepo:        userRepo,
+		anggaranUsecase: nil,
 	}
+}
+
+func (u *kantongUsecase) SetAnggaranUsecase(anggaranUsecase AnggaranUsecase) {
+	u.anggaranUsecase = anggaranUsecase
 }
 
 func (u *kantongUsecase) GetKantongList(userID uint, req *domain.KantongListRequest) ([]*domain.KantongResponse, *domain.PaginationMeta, error) {
@@ -115,6 +122,12 @@ func (u *kantongUsecase) CreateKantong(req *domain.CreateKantongRequest, userID 
 
 	if err := u.kantongRepo.Create(kantong); err != nil {
 		return nil, err
+	}
+
+	if u.anggaranUsecase != nil {
+		if err := u.anggaranUsecase.CreateAnggaranForNewKantong(kantong); err != nil {
+			return nil, err
+		}
 	}
 
 	return domain.ToKantongResponse(kantong), nil

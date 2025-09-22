@@ -46,6 +46,17 @@ type TransaksiRepository interface {
 	Delete(id string, userID uint) error
 }
 
+type AnggaranRepository interface {
+	GetByUserID(userID uint, req *domain.AnggaranListRequest) ([]*domain.AnggaranItem, int, error)
+	GetByKantongID(kantongID string, userID uint, bulan, tahun int) (*domain.AnggaranItem, error)
+	CreateOrUpdate(anggaran *domain.AnggaranItem) error
+	CreatePenyesuaian(userID uint, req *domain.PenyesuaianAnggaranRequest) (*domain.AnggaranItem, error)
+	GetStatistikBulan(kantongID string, userID uint, bulan, tahun int) ([]domain.StatistikHarian, error)
+	RecalculateAnggaran(kantongID string, userID uint, bulan, tahun int) (*domain.AnggaranItem, error)
+	CreateAnggaranForKantong(kantong *domain.Kantong) error
+	UpdateAnggaranAfterTransaksi(kantongID string, userID uint) error
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)
