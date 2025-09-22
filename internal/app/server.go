@@ -33,10 +33,14 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	userRepo := repo.NewUserRepository(db)
 	refreshTokenRepo := repo.NewRefreshTokenRepository(db)
 	resetTokenRepo := repo.NewPasswordResetTokenRepository(db)
-	// redisRepo := repo.NewRedisRepository(rdb) // Ready for use when needed
+	redisRepo := repo.NewRedisRepository(rdb)
+	kantongRepo := repo.NewKantongRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
+
+	kantongUsecase := usecase.NewKantongUsecase(kantongRepo, userRepo)
+	kantongController := http.NewKantongController(kantongUsecase)
 
 	healthUsecase := usecase.NewHealthUsecase(db, rdb, cfg)
 	healthController := http.NewHealthController(healthUsecase)
@@ -52,6 +56,15 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	protected := auth.Group("/", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	protected.Post("logout", authController.Logout)
+
+	// Kantong routes with authentication
+	kantong := api.Group("/kantong", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	kantong.Get("/", kantongController.GetKantongList)
+	kantong.Get("/detail", kantongController.GetKantongByID)
+	kantong.Post("/", kantongController.CreateKantong)
+	kantong.Put("/", kantongController.UpdateKantong)
+	kantong.Patch("/", kantongController.PatchKantong)
+	kantong.Delete("/", kantongController.DeleteKantong)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

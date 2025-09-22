@@ -1,0 +1,790 @@
+openapi: 3.0.3
+info:
+  title: Fiber Boilerplate API - Kantong Management
+  description: API dokumentasi untuk sistem manajemen kantong pada aplikasi Fast Track
+  version: 1.0.0
+  contact:
+    name: Developer Team
+    email: developer@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+
+paths:
+  /kantong:
+    get:
+      tags:
+        - Kantong Management
+      summary: Dapatkan daftar kantong
+      description: Endpoint untuk mendapatkan daftar kantong dengan fitur pencarian dan pengurutan
+      operationId: getKantongList
+      parameters:
+        - name: search
+          in: query
+          description: Pencarian berdasarkan nama kantong
+          schema:
+            type: string
+          example: "Kantong Belanja"
+        - name: sort_by
+          in: query
+          description: Field untuk pengurutan (nama atau saldo)
+          schema:
+            type: string
+            enum: [nama, saldo]
+            default: nama
+        - name: sort_direction
+          in: query
+          description: Arah pengurutan
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: page
+          in: query
+          description: Nomor halaman
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Jumlah item per halaman
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Daftar kantong berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KantongListResponse'
+              example:
+                success: true
+                message: "Daftar kantong berhasil diambil"
+                code: 200
+                data:
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    id_kartu: "K4N7G1"
+                    nama: "Kantong Belanja"
+                    kategori: "Pengeluaran"
+                    deskripsi: "Untuk keperluan belanja bulanan"
+                    limit: 1000000
+                    saldo: 750000
+                    warna: "Navy"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-01T00:00:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440002"
+                    id_kartu: "TB4NG2"
+                    nama: "Tabungan Darurat"
+                    kategori: "Darurat"
+                    deskripsi: null
+                    limit: null
+                    saldo: 2500000
+                    warna: "Red"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-01T00:00:00Z"
+                meta:
+                  current_page: 1
+                  total_pages: 5
+                  total_records: 47
+                  per_page: 10
+                timestamp: "2024-01-01T00:00:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Tidak memiliki akses"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Kantong Management
+      summary: Buat kantong baru
+      description: Endpoint untuk membuat kantong baru
+      operationId: createKantong
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKantongRequest'
+            example:
+              nama: "Kantong Transport"
+              kategori: "Transport"
+              deskripsi: "Untuk biaya transportasi harian"
+              limit: 500000
+              saldo: 100000
+              warna: "Green"
+      responses:
+        '201':
+          description: Kantong berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KantongResponse'
+              example:
+                success: true
+                message: "Kantong berhasil dibuat"
+                code: 201
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440003"
+                  id_kartu: "TR4N53"
+                  nama: "Kantong Transport"
+                  kategori: "Transport"
+                  deskripsi: "Untuk biaya transportasi harian"
+                  limit: 500000
+                  saldo: 100000
+                  warna: "Green"
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T00:00:00Z"
+                timestamp: "2024-01-01T00:00:00Z"
+        '400':
+          description: Data validasi tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Nama kantong sudah ada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Nama kantong sudah ada"
+                code: 409
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /kantong/detail:
+    get:
+      tags:
+        - Kantong Management
+      summary: Dapatkan detail kantong
+      description: Endpoint untuk mendapatkan detail kantong berdasarkan ID
+      operationId: getKantongById
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID kantong (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      responses:
+        '200':
+          description: Detail kantong berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KantongResponse'
+              example:
+                success: true
+                message: "Detail kantong berhasil diambil"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  id_kartu: "K4N7G1"
+                  nama: "Kantong Belanja"
+                  kategori: "Pengeluaran"
+                  deskripsi: "Untuk keperluan belanja bulanan"
+                  limit: 1000000
+                  saldo: 750000
+                  warna: "Navy"
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T00:00:00Z"
+                timestamp: "2024-01-01T00:00:00Z"
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Format ID tidak valid"
+                code: 400
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Kantong tidak ditemukan"
+                code: 404
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /kantong/update:
+    put:
+      tags:
+        - Kantong Management
+      summary: Perbarui kantong
+      description: Endpoint untuk memperbarui data kantong secara keseluruhan
+      operationId: updateKantong
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID kantong (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateKantongRequest'
+            example:
+              nama: "Kantong Belanja Updated"
+              kategori: "Pengeluaran"
+              deskripsi: "Untuk keperluan belanja bulanan yang telah diperbarui"
+              limit: 1200000
+              saldo: 850000
+              warna: "Purple"
+      responses:
+        '200':
+          description: Kantong berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KantongResponse'
+              example:
+                success: true
+                message: "Kantong berhasil diperbarui"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  id_kartu: "K4N7G1"
+                  nama: "Kantong Belanja Updated"
+                  kategori: "Pengeluaran"
+                  deskripsi: "Untuk keperluan belanja bulanan yang telah diperbarui"
+                  limit: 1200000
+                  saldo: 850000
+                  warna: "Purple"
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T12:00:00Z"
+                timestamp: "2024-01-01T12:00:00Z"
+        '400':
+          description: Data validasi tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Nama kantong sudah ada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /kantong/patch:
+    patch:
+      tags:
+        - Kantong Management
+      summary: Perbarui sebagian data kantong
+      description: Endpoint untuk memperbarui sebagian data kantong
+      operationId: patchKantong
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID kantong (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchKantongRequest'
+            example:
+              saldo: 900000
+              warna: "Glass"
+      responses:
+        '200':
+          description: Kantong berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KantongResponse'
+              example:
+                success: true
+                message: "Kantong berhasil diperbarui"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  id_kartu: "K4N7G1"
+                  nama: "Kantong Belanja"
+                  kategori: "Pengeluaran"
+                  deskripsi: "Untuk keperluan belanja bulanan"
+                  limit: 1000000
+                  saldo: 900000
+                  warna: "Glass"
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T15:00:00Z"
+                timestamp: "2024-01-01T15:00:00Z"
+        '400':
+          description: Data validasi tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Nama kantong sudah ada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /kantong/delete:
+    delete:
+      tags:
+        - Kantong Management
+      summary: Hapus kantong
+      description: Endpoint untuk menghapus kantong berdasarkan ID
+      operationId: deleteKantong
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID kantong (UUID)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      responses:
+        '200':
+          description: Kantong berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Kantong berhasil dihapus"
+                code: 200
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Kantong tidak dapat dihapus karena masih memiliki transaksi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Kantong tidak dapat dihapus karena masih memiliki transaksi aktif"
+                code: 409
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Kantong:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+          description: "ID unik kantong (UUID)"
+        id_kartu:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^[A-Z0-9]{6}$'
+          example: "K4N7G1"
+          description: "ID kartu unik 6 digit (kombinasi huruf kapital dan angka)"
+        nama:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Kantong Belanja"
+          description: "Nama kantong"
+        kategori:
+          type: string
+          enum: ["Pengeluaran", "Tabungan", "Darurat", "Transport", "Tidak Spesifik"]
+          example: "Pengeluaran"
+          description: "Kategori kantong"
+        deskripsi:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Untuk keperluan belanja bulanan"
+          description: "Deskripsi kantong (opsional)"
+        limit:
+          type: number
+          nullable: true
+          minimum: 0
+          example: 1000000
+          description: "Limit nominal kantong (opsional)"
+        saldo:
+          type: number
+          minimum: 0
+          default: 0
+          example: 750000
+          description: "Saldo kantong saat ini"
+        warna:
+          type: string
+          enum: ["Navy", "Glass", "Purple", "Green", "Red"]
+          example: "Navy"
+          description: "Warna tema kantong"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+          description: "Waktu pembuatan kantong"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+          description: "Waktu terakhir kantong diperbarui"
+
+    CreateKantongRequest:
+      type: object
+      required:
+        - nama
+        - kategori
+        - warna
+      properties:
+        nama:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Kantong Transport"
+          description: "Nama kantong"
+        kategori:
+          type: string
+          enum: ["Pengeluaran", "Tabungan", "Darurat", "Transport", "Tidak Spesifik"]
+          example: "Transport"
+          description: "Kategori kantong"
+        deskripsi:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Untuk biaya transportasi harian"
+          description: "Deskripsi kantong (opsional)"
+        limit:
+          type: number
+          nullable: true
+          minimum: 0
+          example: 500000
+          description: "Limit nominal kantong (opsional)"
+        saldo:
+          type: number
+          minimum: 0
+          default: 0
+          example: 100000
+          description: "Saldo awal kantong (opsional, default: 0)"
+        warna:
+          type: string
+          enum: ["Navy", "Glass", "Purple", "Green", "Red"]
+          example: "Green"
+          description: "Warna tema kantong"
+
+    UpdateKantongRequest:
+      type: object
+      required:
+        - nama
+        - kategori
+        - warna
+      properties:
+        nama:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Kantong Belanja Updated"
+          description: "Nama kantong"
+        kategori:
+          type: string
+          enum: ["Pengeluaran", "Tabungan", "Darurat", "Transport", "Tidak Spesifik"]
+          example: "Pengeluaran"
+          description: "Kategori kantong"
+        deskripsi:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Untuk keperluan belanja bulanan yang telah diperbarui"
+          description: "Deskripsi kantong (opsional)"
+        limit:
+          type: number
+          nullable: true
+          minimum: 0
+          example: 1200000
+          description: "Limit nominal kantong (opsional)"
+        saldo:
+          type: number
+          minimum: 0
+          example: 850000
+          description: "Saldo kantong"
+        warna:
+          type: string
+          enum: ["Navy", "Glass", "Purple", "Green", "Red"]
+          example: "Purple"
+          description: "Warna tema kantong"
+
+    PatchKantongRequest:
+      type: object
+      properties:
+        nama:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Kantong Belanja Updated"
+          description: "Nama kantong"
+        kategori:
+          type: string
+          enum: ["Pengeluaran", "Tabungan", "Darurat", "Transport", "Tidak Spesifik"]
+          example: "Pengeluaran"
+          description: "Kategori kantong"
+        deskripsi:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Deskripsi yang diperbarui"
+          description: "Deskripsi kantong (opsional)"
+        limit:
+          type: number
+          nullable: true
+          minimum: 0
+          example: 1200000
+          description: "Limit nominal kantong (opsional)"
+        saldo:
+          type: number
+          minimum: 0
+          example: 900000
+          description: "Saldo kantong"
+        warna:
+          type: string
+          enum: ["Navy", "Glass", "Purple", "Green", "Red"]
+          example: "Glass"
+          description: "Warna tema kantong"
+
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+        - code
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          description: "Status keberhasilan request"
+        message:
+          type: string
+          description: "Pesan response dalam bahasa Indonesia"
+        code:
+          type: integer
+          description: "HTTP status code"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Waktu response dalam format ISO 8601"
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              nullable: true
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              nullable: true
+
+    KantongResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Kantong'
+
+    KantongListResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Kantong'
+            meta:
+              $ref: '#/components/schemas/PaginationMeta'
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          minimum: 1
+          example: 1
+          description: "Halaman saat ini"
+        total_pages:
+          type: integer
+          minimum: 0
+          example: 10
+          description: "Total halaman"
+        total_records:
+          type: integer
+          minimum: 0
+          example: 100
+          description: "Total record"
+        per_page:
+          type: integer
+          minimum: 1
+          example: 10
+          description: "Jumlah item per halaman"
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          example: "nama"
+          description: "Field yang mengalami error validasi"
+        message:
+          type: string
+          example: "Nama kantong tidak boleh kosong"
+          description: "Pesan error validasi"
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                $ref: '#/components/schemas/ValidationError'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Kantong Management
+    description: Endpoint untuk manajemen kantong keuangan

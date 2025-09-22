@@ -27,6 +27,17 @@ type PasswordResetTokenRepository interface {
 	CleanupExpired() error
 }
 
+type KantongRepository interface {
+	GetByUserID(userID uint, req *domain.KantongListRequest) ([]*domain.Kantong, int, error)
+	GetByID(id string, userID uint) (*domain.Kantong, error)
+	GetByIDKartu(idKartu string, userID uint) (*domain.Kantong, error)
+	Create(kantong *domain.Kantong) error
+	Update(kantong *domain.Kantong) error
+	Delete(id string, userID uint) error
+	IsNameExistForUser(nama string, userID uint, excludeID ...string) (bool, error)
+	GenerateUniqueIDKartu() (string, error)
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)

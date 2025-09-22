@@ -14,6 +14,7 @@ func RunMigration(db *gorm.DB) {
 		&domain.User{},
 		&domain.RefreshToken{},
 		&domain.PasswordResetToken{},
+		&domain.Kantong{},
 	); err != nil {
 		log.Fatal("Gagal melakukan auto migrate:", err)
 	}
