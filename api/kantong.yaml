@@ -194,7 +194,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /kantong/detail:
+  /kantong/{id}:
     get:
       tags:
         - Kantong Management
@@ -203,7 +203,7 @@ paths:
       operationId: getKantongById
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID kantong (UUID)
           schema:
@@ -268,7 +268,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /kantong/update:
     put:
       tags:
         - Kantong Management
@@ -277,7 +276,7 @@ paths:
       operationId: updateKantong
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID kantong (UUID)
           schema:
@@ -351,7 +350,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /kantong/patch:
     patch:
       tags:
         - Kantong Management
@@ -360,7 +358,7 @@ paths:
       operationId: patchKantong
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID kantong (UUID)
           schema:
@@ -430,7 +428,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /kantong/delete:
     delete:
       tags:
         - Kantong Management
@@ -439,7 +436,7 @@ paths:
       operationId: deleteKantong
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID kantong (UUID)
           schema:

@@ -228,7 +228,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /transaksi/detail:
+  /transaksi/{id}:
     get:
       tags:
         - Transaksi Management
@@ -237,7 +237,7 @@ paths:
       operationId: getTransaksiById
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID transaksi (UUID)
           schema:
@@ -301,7 +301,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /transaksi/update:
     put:
       tags:
         - Transaksi Management
@@ -310,7 +309,7 @@ paths:
       operationId: updateTransaksi
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID transaksi (UUID)
           schema:
@@ -387,7 +386,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /transaksi/patch:
     patch:
       tags:
         - Transaksi Management
@@ -396,7 +394,7 @@ paths:
       operationId: patchTransaksi
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID transaksi (UUID)
           schema:
@@ -465,7 +463,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /transaksi/delete:
     delete:
       tags:
         - Transaksi Management
@@ -474,7 +471,7 @@ paths:
       operationId: deleteTransaksi
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: ID transaksi (UUID)
           schema:

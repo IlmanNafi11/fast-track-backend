@@ -63,7 +63,7 @@ func (c *KantongController) GetKantongList(ctx *fiber.Ctx) error {
 
 func (c *KantongController) GetKantongByID(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("user_id").(uint)
-	id := ctx.Query("id")
+	id := ctx.Params("id")
 
 	if id == "" {
 		return helper.SendErrorResponse(ctx, 400, "ID kantong wajib diisi", nil)
@@ -106,7 +106,7 @@ func (c *KantongController) CreateKantong(ctx *fiber.Ctx) error {
 
 func (c *KantongController) UpdateKantong(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("user_id").(uint)
-	id := ctx.Query("id")
+	id := ctx.Params("id")
 
 	if id == "" {
 		return helper.SendErrorResponse(ctx, 400, "ID kantong wajib diisi", nil)
@@ -138,7 +138,7 @@ func (c *KantongController) UpdateKantong(ctx *fiber.Ctx) error {
 
 func (c *KantongController) PatchKantong(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("user_id").(uint)
-	id := ctx.Query("id")
+	id := ctx.Params("id")
 
 	if id == "" {
 		return helper.SendErrorResponse(ctx, 400, "ID kantong wajib diisi", nil)
@@ -170,7 +170,7 @@ func (c *KantongController) PatchKantong(ctx *fiber.Ctx) error {
 
 func (c *KantongController) DeleteKantong(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("user_id").(uint)
-	id := ctx.Query("id")
+	id := ctx.Params("id")
 
 	if id == "" {
 		return helper.SendErrorResponse(ctx, 400, "ID kantong wajib diisi", nil)

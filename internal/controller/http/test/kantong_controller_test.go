@@ -59,8 +59,11 @@ func setupKantongController() (*fiber.App, *MockKantongUsecase) {
 	})
 
 	app.Get("/kantong", controller.GetKantongList)
-	app.Get("/kantong/detail", controller.GetKantongByID)
+	app.Get("/kantong/:id", controller.GetKantongByID)
 	app.Post("/kantong", controller.CreateKantong)
+	app.Put("/kantong/:id", controller.UpdateKantong)
+	app.Patch("/kantong/:id", controller.PatchKantong)
+	app.Delete("/kantong/:id", controller.DeleteKantong)
 
 	return app, mockUsecase
 }
@@ -109,7 +112,7 @@ func TestGetKantongByID_Success(t *testing.T) {
 
 	mockUsecase.On("GetKantongByID", "test-id-1", uint(1)).Return(expectedKantong, nil)
 
-	req := httptest.NewRequest("GET", "/kantong/detail?id=test-id-1", nil)
+	req := httptest.NewRequest("GET", "/kantong/test-id-1", nil)
 	resp, _ := app.Test(req)
 
 	assert.Equal(t, 200, resp.StatusCode)
@@ -121,20 +124,23 @@ func TestGetKantongByID_NotFound(t *testing.T) {
 
 	mockUsecase.On("GetKantongByID", "non-existent", uint(1)).Return((*domain.KantongResponse)(nil), fmt.Errorf("kantong tidak ditemukan"))
 
-	req := httptest.NewRequest("GET", "/kantong/detail?id=non-existent", nil)
+	req := httptest.NewRequest("GET", "/kantong/non-existent", nil)
 	resp, _ := app.Test(req)
 
 	assert.Equal(t, 404, resp.StatusCode)
 	mockUsecase.AssertExpectations(t)
 }
 
-func TestGetKantongByID_MissingID(t *testing.T) {
-	app, _ := setupKantongController()
+func TestGetKantongByID_InvalidUUID(t *testing.T) {
+	app, mockUsecase := setupKantongController()
 
-	req := httptest.NewRequest("GET", "/kantong/detail", nil)
+	mockUsecase.On("GetKantongByID", "invalid-uuid", uint(1)).Return((*domain.KantongResponse)(nil), fmt.Errorf("kantong tidak ditemukan"))
+
+	req := httptest.NewRequest("GET", "/kantong/invalid-uuid", nil)
 	resp, _ := app.Test(req)
 
-	assert.Equal(t, 400, resp.StatusCode)
+	assert.Equal(t, 404, resp.StatusCode)
+	mockUsecase.AssertExpectations(t)
 }
 
 func TestCreateKantong_Success(t *testing.T) {
