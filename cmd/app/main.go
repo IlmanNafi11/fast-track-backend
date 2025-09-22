@@ -11,7 +11,26 @@ func main() {
 
 	db := config.ConnectDatabase(cfg)
 
-	config.RunSeeder(db)
+	// Jalankan migration
+	if cfg.Database.AutoMigrate && cfg.Database.MigrateOnStart {
+		log.Printf("🔄 Menjalankan auto migration untuk environment: %s", cfg.App.Env)
+		config.RunMigration(db)
+	}
+
+	// Jalankan seeder berdasarkan konfigurasi
+	if cfg.App.Env == "production" {
+		if cfg.Database.RunSeeder {
+			log.Println("🚨 PERINGATAN: Seeder tidak direkomendasikan untuk production environment!")
+			log.Println("🛡️ Melewati eksekusi seeder untuk keamanan production")
+		}
+	} else {
+		if cfg.Database.RunSeeder {
+			log.Printf("🌱 Menjalankan seeder untuk environment: %s", cfg.App.Env)
+			config.RunSeeder(db, cfg)
+		} else {
+			log.Println("⏭️  Seeder dinonaktifkan melalui konfigurasi DB_RUN_SEEDER=false")
+		}
+	}
 
 	server := app.NewServer(cfg, db)
 
