@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,4 +28,17 @@ func JWTAuthMiddleware(secret string) fiber.Handler {
 		c.Locals("user_email", claims.Email)
 		return c.Next()
 	}
+}
+
+func GetUserIDFromToken(c *fiber.Ctx) (uint, error) {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return 0, errors.New("user ID tidak ditemukan dalam token")
+	}
+
+	if id, ok := userID.(uint); ok {
+		return id, nil
+	}
+
+	return 0, errors.New("user ID tidak valid")
 }

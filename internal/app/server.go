@@ -35,12 +35,16 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	resetTokenRepo := repo.NewPasswordResetTokenRepository(db)
 	redisRepo := repo.NewRedisRepository(rdb)
 	kantongRepo := repo.NewKantongRepository(db, redisRepo)
+	transaksiRepo := repo.NewTransaksiRepository(db)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
 
 	kantongUsecase := usecase.NewKantongUsecase(kantongRepo, userRepo)
 	kantongController := http.NewKantongController(kantongUsecase)
+
+	transaksiUsecase := usecase.NewTransaksiUsecase(transaksiRepo, kantongRepo, redisRepo)
+	transaksiController := http.NewTransaksiController(transaksiUsecase)
 
 	healthUsecase := usecase.NewHealthUsecase(db, rdb, cfg)
 	healthController := http.NewHealthController(healthUsecase)
@@ -57,7 +61,6 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	protected := auth.Group("/", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	protected.Post("logout", authController.Logout)
 
-	// Kantong routes with authentication
 	kantong := api.Group("/kantong", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	kantong.Get("/", kantongController.GetKantongList)
 	kantong.Get("/detail", kantongController.GetKantongByID)
@@ -65,6 +68,14 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	kantong.Put("/", kantongController.UpdateKantong)
 	kantong.Patch("/", kantongController.PatchKantong)
 	kantong.Delete("/", kantongController.DeleteKantong)
+
+	transaksi := api.Group("/transaksi", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	transaksi.Get("/", transaksiController.GetTransaksiList)
+	transaksi.Get("/detail/:id", transaksiController.GetTransaksiDetail)
+	transaksi.Post("/", transaksiController.CreateTransaksi)
+	transaksi.Put("/update/:id", transaksiController.UpdateTransaksi)
+	transaksi.Patch("/patch/:id", transaksiController.PatchTransaksi)
+	transaksi.Delete("/delete/:id", transaksiController.DeleteTransaksi)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

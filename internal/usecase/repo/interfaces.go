@@ -38,6 +38,14 @@ type KantongRepository interface {
 	GenerateUniqueIDKartu() (string, error)
 }
 
+type TransaksiRepository interface {
+	GetByUserID(userID uint, req *domain.TransaksiListRequest) ([]*domain.TransaksiResponse, int, error)
+	GetByID(id string, userID uint) (*domain.TransaksiResponse, error)
+	Create(transaksi *domain.Transaksi) error
+	Update(transaksi *domain.Transaksi) error
+	Delete(id string, userID uint) error
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)
