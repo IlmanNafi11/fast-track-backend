@@ -23,12 +23,16 @@ type AppConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Name     string
-	SSLMode  string
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Name           string
+	SSLMode        string
+	AutoMigrate    bool
+	RunSeeder      bool
+	SeedUsers      bool
+	MigrateOnStart bool
 }
 
 type JWTConfig struct {
@@ -59,12 +63,16 @@ func LoadConfig() *Config {
 			Env:  getEnv("APP_ENV", "development"),
 		},
 		Database: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", "postgres"),
-			Name:     getEnv("DB_NAME", "fiber_boilerplate"),
-			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+			Host:           getEnv("DB_HOST", "localhost"),
+			Port:           getEnv("DB_PORT", "5432"),
+			User:           getEnv("DB_USER", "postgres"),
+			Password:       getEnv("DB_PASSWORD", "postgres"),
+			Name:           getEnv("DB_NAME", "fiber_boilerplate"),
+			SSLMode:        getEnv("DB_SSL_MODE", "disable"),
+			AutoMigrate:    getEnvAsBool("DB_AUTO_MIGRATE", true),
+			RunSeeder:      getEnvAsBool("DB_RUN_SEEDER", false),
+			SeedUsers:      getEnvAsBool("DB_SEED_USERS", false),
+			MigrateOnStart: getEnvAsBool("DB_MIGRATE_ON_START", true),
 		},
 		JWT: JWTConfig{
 			Secret:                  getEnv("JWT_SECRET", "your-jwt-secret"),
@@ -93,6 +101,14 @@ func getEnv(key, defaultValue string) string {
 func getEnvAsInt(key string, defaultValue int) int {
 	valueStr := getEnv(key, "")
 	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := getEnv(key, "")
+	if value, err := strconv.ParseBool(valueStr); err == nil {
 		return value
 	}
 	return defaultValue

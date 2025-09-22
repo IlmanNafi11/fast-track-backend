@@ -8,18 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func RunSeeder(db *gorm.DB) {
+func RunSeeder(db *gorm.DB, cfg *Config) {
 	log.Println("Menjalankan database seeder...")
 
-	if err := db.AutoMigrate(
-		&domain.User{},
-		&domain.RefreshToken{},
-		&domain.PasswordResetToken{},
-	); err != nil {
-		log.Fatal("Gagal melakukan auto migrate:", err)
+	if cfg.Database.SeedUsers {
+		seedUsers(db)
+	} else {
+		log.Println("Seeder users dinonaktifkan melalui konfigurasi")
 	}
 
-	seedUsers(db)
 	log.Println("Database seeder selesai")
 }
 
