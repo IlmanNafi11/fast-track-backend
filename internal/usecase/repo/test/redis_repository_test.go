@@ -94,6 +94,14 @@ func TestRedisRepository_FlushAll(t *testing.T) {
 	assert.Equal(t, redis.Nil, err)
 }
 
+func TestRedisRepository_GetKeys(t *testing.T) {
+	redisRepo := repo.NewRedisRepository(nil)
+
+	keys, err := redisRepo.GetKeys("test-pattern*")
+	assert.Equal(t, redis.Nil, err)
+	assert.Nil(t, keys)
+}
+
 func TestRedisRepository_Ping(t *testing.T) {
 	redisRepo := repo.NewRedisRepository(nil)
 

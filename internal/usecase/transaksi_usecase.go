@@ -48,9 +48,11 @@ func (uc *transaksiUsecase) SetAnggaranUsecase(anggaranUsecase AnggaranUsecase) 
 func (uc *transaksiUsecase) GetTransaksiList(userID uint, req *domain.TransaksiListRequest) (*domain.TransaksiListResponse, error) {
 	cacheKey := uc.generateListCacheKey(userID, req)
 
-	var cachedResponse domain.TransaksiListResponse
-	if err := uc.redisRepo.GetJSON(cacheKey, &cachedResponse); err == nil {
-		return &cachedResponse, nil
+	if !uc.isCacheDisabledForUser(userID) {
+		var cachedResponse domain.TransaksiListResponse
+		if err := uc.redisRepo.GetJSON(cacheKey, &cachedResponse); err == nil {
+			return &cachedResponse, nil
+		}
 	}
 
 	transaksiList, total, err := uc.transaksiRepo.GetByUserID(userID, req)
@@ -81,7 +83,9 @@ func (uc *transaksiUsecase) GetTransaksiList(userID uint, req *domain.TransaksiL
 		response.Data = append(response.Data, *transaksi)
 	}
 
-	uc.redisRepo.SetJSON(cacheKey, response, 5*time.Minute)
+	if !uc.isCacheDisabledForUser(userID) {
+		uc.redisRepo.SetJSON(cacheKey, response, 5*time.Minute)
+	}
 
 	return response, nil
 }
@@ -123,6 +127,8 @@ func (uc *transaksiUsecase) CreateTransaksi(userID uint, req *domain.CreateTrans
 		return nil, errors.New("format tanggal tidak valid")
 	}
 
+	uc.invalidateUserCache(userID)
+
 	transaksi := &domain.Transaksi{
 		ID:        uuid.New().String(),
 		UserID:    userID,
@@ -163,6 +169,8 @@ func (uc *transaksiUsecase) UpdateTransaksi(id string, userID uint, req *domain.
 	if err != nil {
 		return nil, errors.New("format tanggal tidak valid")
 	}
+
+	uc.invalidateUserCache(userID)
 
 	transaksi := &domain.Transaksi{
 		ID:        id,
@@ -222,6 +230,9 @@ func (uc *transaksiUsecase) DeleteTransaksi(id string, userID uint) error {
 		return err
 	}
 
+	uc.invalidateUserCache(userID)
+	uc.redisRepo.Delete(uc.generateDetailCacheKey(id, userID))
+
 	if err := uc.transaksiRepo.Delete(id, userID); err != nil {
 		return err
 	}
@@ -273,4 +284,17 @@ func (uc *transaksiUsecase) invalidateUserCache(userID uint) {
 			uc.redisRepo.Delete(key)
 		}
 	}
+
+	uc.disableCacheForUser(userID)
+}
+
+func (uc *transaksiUsecase) isCacheDisabledForUser(userID uint) bool {
+	key := fmt.Sprintf("cache_disabled:%d", userID)
+	exists, err := uc.redisRepo.Exists(key)
+	return err == nil && exists
+}
+
+func (uc *transaksiUsecase) disableCacheForUser(userID uint) {
+	key := fmt.Sprintf("cache_disabled:%d", userID)
+	uc.redisRepo.Set(key, "1", 5*time.Second)
 }
