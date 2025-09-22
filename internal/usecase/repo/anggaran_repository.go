@@ -26,11 +26,12 @@ func (r *anggaranRepository) GetByUserID(userID uint, req *domain.AnggaranListRe
 	cacheKey := fmt.Sprintf("anggaran:list:%d:%d:%d", userID, *req.Bulan, *req.Tahun)
 
 	var anggarans []domain.Anggaran
-	query := r.db.Preload("Kantong").Where("user_id = ? AND bulan = ? AND tahun = ?", userID, *req.Bulan, *req.Tahun)
+	query := r.db.Joins("LEFT JOIN kantongs ON anggarans.kantong_id = kantongs.id").
+		Preload("Kantong").
+		Where("anggarans.user_id = ? AND anggarans.bulan = ? AND anggarans.tahun = ?", userID, *req.Bulan, *req.Tahun)
 
 	if req.Search != nil && *req.Search != "" {
-		query = query.Joins("LEFT JOIN kantongs ON anggarans.kantong_id = kantongs.id").
-			Where("kantongs.nama ILIKE ?", "%"+*req.Search+"%")
+		query = query.Where("kantongs.nama ILIKE ?", "%"+*req.Search+"%")
 	}
 
 	var total int64
@@ -190,7 +191,7 @@ func (r *anggaranRepository) GetStatistikBulan(kantongID string, userID uint, bu
 	}
 
 	err := r.db.Table("transaksis").
-		Select("DATE(created_at) as tanggal, COUNT(*) as jumlah_transaksi, SUM(nominal) as total_pengeluaran").
+		Select("DATE(created_at) as tanggal, COUNT(*) as jumlah_transaksi, SUM(jumlah) as total_pengeluaran").
 		Where("kantong_id = ? AND user_id = ? AND created_at >= ? AND created_at <= ?",
 			kantongID, userID, startDate, endDate).
 		Group("DATE(created_at)").
@@ -229,7 +230,7 @@ func (r *anggaranRepository) RecalculateAnggaran(kantongID string, userID uint, 
 	err = r.db.Model(&domain.Transaksi{}).
 		Where("kantong_id = ? AND user_id = ? AND EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
 			kantongID, userID, bulan, tahun).
-		Select("COALESCE(SUM(nominal), 0)").Scan(&totalTransaksi).Error
+		Select("COALESCE(SUM(jumlah), 0)").Scan(&totalTransaksi).Error
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +337,7 @@ func (r *anggaranRepository) calculateAnggaranValues(item *domain.AnggaranItem, 
 	err := r.db.Model(&domain.Transaksi{}).
 		Where("kantong_id = ? AND user_id = ? AND EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ?",
 			item.KantongID, userID, item.Bulan, item.Tahun).
-		Select("COALESCE(SUM(nominal), 0)").Scan(&totalTransaksi).Error
+		Select("COALESCE(SUM(jumlah), 0)").Scan(&totalTransaksi).Error
 	if err != nil {
 		return nil, err
 	}
@@ -379,10 +380,6 @@ func (r *anggaranRepository) buildOrderClause(sortBy, sortDirection string) stri
 
 	if sortDirection != "desc" {
 		sortDirection = "asc"
-	}
-
-	if sortBy == "nama_kantong" {
-		return fmt.Sprintf("kantongs.nama %s", sortDirection)
 	}
 
 	return fmt.Sprintf("%s %s", field, sortDirection)
