@@ -50,3 +50,23 @@ type RefreshTokenResponse struct {
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 }
+
+type RefreshToken struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"user_id" gorm:"not null"`
+	Token     string    `json:"token" gorm:"uniqueIndex;not null"`
+	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
+	IsRevoked bool      `json:"is_revoked" gorm:"default:false"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	User      User      `json:"user" gorm:"foreignKey:UserID"`
+}
+
+type PasswordResetToken struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Email     string    `json:"email" gorm:"not null"`
+	Token     string    `json:"token" gorm:"uniqueIndex;not null"`
+	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
+	IsUsed    bool      `json:"is_used" gorm:"default:false"`
+	CreatedAt time.Time `json:"created_at"`
+}
