@@ -49,6 +49,11 @@ func (m *MockKantongUsecase) DeleteKantong(id string, userID uint) error {
 	return args.Error(0)
 }
 
+func (m *MockKantongUsecase) TransferKantong(req *domain.TransferKantongRequest, userID uint) (*domain.TransferKantongResponse, error) {
+	args := m.Called(req, userID)
+	return args.Get(0).(*domain.TransferKantongResponse), args.Error(1)
+}
+
 func (m *MockKantongUsecase) SetAnggaranUsecase(anggaranUsecase usecase.AnggaranUsecase) {
 	// Mock method - tidak perlu implementasi
 }
@@ -204,5 +209,115 @@ func TestCreateKantong_DuplicateName(t *testing.T) {
 	resp, _ := app.Test(req)
 
 	assert.Equal(t, 409, resp.StatusCode)
+	mockUsecase.AssertExpectations(t)
+}
+
+func TestTransferKantong_Success(t *testing.T) {
+	mockUsecase := new(MockKantongUsecase)
+	controller := http.NewKantongController(mockUsecase)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("user_id", uint(1))
+		return c.Next()
+	})
+	app.Post("/transfer", controller.TransferKantong)
+
+	transferRequest := domain.TransferKantongRequest{
+		KantongAsalID:   "550e8400-e29b-41d4-a716-446655440001",
+		KantongTujuanID: "550e8400-e29b-41d4-a716-446655440002",
+		Jumlah:          100000,
+		Catatan:         nil,
+	}
+
+	expectedResponse := &domain.TransferKantongResponse{
+		Success: true,
+		Message: "Transfer antar kantong berhasil dilakukan",
+		Code:    200,
+		Data: &domain.TransferResult{
+			TransferID: "550e8400-e29b-41d4-a716-446655440003",
+			KantongAsal: domain.TransferKantongDetail{
+				ID:           "550e8400-e29b-41d4-a716-446655440001",
+				Nama:         "Kantong Transport",
+				SaldoSebelum: 500000,
+				SaldoSesudah: 400000,
+			},
+			KantongTujuan: domain.TransferKantongDetail{
+				ID:           "550e8400-e29b-41d4-a716-446655440002",
+				Nama:         "Kantong Darurat",
+				SaldoSebelum: 200000,
+				SaldoSesudah: 300000,
+			},
+			Jumlah:  100000,
+			Catatan: nil,
+		},
+	}
+
+	mockUsecase.On("TransferKantong", &transferRequest, uint(1)).Return(expectedResponse, nil)
+
+	body, _ := json.Marshal(transferRequest)
+	req := httptest.NewRequest("POST", "/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, _ := app.Test(req)
+
+	assert.Equal(t, 200, resp.StatusCode)
+	mockUsecase.AssertExpectations(t)
+}
+
+func TestTransferKantong_SameKantong(t *testing.T) {
+	mockUsecase := new(MockKantongUsecase)
+	controller := http.NewKantongController(mockUsecase)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("user_id", uint(1))
+		return c.Next()
+	})
+	app.Post("/transfer", controller.TransferKantong)
+
+	transferRequest := domain.TransferKantongRequest{
+		KantongAsalID:   "550e8400-e29b-41d4-a716-446655440001",
+		KantongTujuanID: "550e8400-e29b-41d4-a716-446655440001",
+		Jumlah:          100000,
+		Catatan:         nil,
+	}
+
+	mockUsecase.On("TransferKantong", &transferRequest, uint(1)).Return((*domain.TransferKantongResponse)(nil), fmt.Errorf("kantong asal dan kantong tujuan tidak boleh sama"))
+
+	body, _ := json.Marshal(transferRequest)
+	req := httptest.NewRequest("POST", "/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, _ := app.Test(req)
+
+	assert.Equal(t, 400, resp.StatusCode)
+	mockUsecase.AssertExpectations(t)
+}
+
+func TestTransferKantong_InsufficientBalance(t *testing.T) {
+	mockUsecase := new(MockKantongUsecase)
+	controller := http.NewKantongController(mockUsecase)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("user_id", uint(1))
+		return c.Next()
+	})
+	app.Post("/transfer", controller.TransferKantong)
+
+	transferRequest := domain.TransferKantongRequest{
+		KantongAsalID:   "550e8400-e29b-41d4-a716-446655440001",
+		KantongTujuanID: "550e8400-e29b-41d4-a716-446655440002",
+		Jumlah:          1000000,
+		Catatan:         nil,
+	}
+
+	mockUsecase.On("TransferKantong", &transferRequest, uint(1)).Return((*domain.TransferKantongResponse)(nil), fmt.Errorf("saldo kantong asal tidak mencukupi untuk transfer"))
+
+	body, _ := json.Marshal(transferRequest)
+	req := httptest.NewRequest("POST", "/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, _ := app.Test(req)
+
+	assert.Equal(t, 400, resp.StatusCode)
 	mockUsecase.AssertExpectations(t)
 }

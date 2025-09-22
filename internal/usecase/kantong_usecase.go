@@ -5,7 +5,9 @@ import (
 	"fiber-boiler-plate/internal/domain"
 	"fiber-boiler-plate/internal/usecase/repo"
 	"math"
+	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +18,7 @@ type KantongUsecase interface {
 	UpdateKantong(id string, req *domain.UpdateKantongRequest, userID uint) (*domain.KantongResponse, error)
 	PatchKantong(id string, req *domain.PatchKantongRequest, userID uint) (*domain.KantongResponse, error)
 	DeleteKantong(id string, userID uint) error
+	TransferKantong(req *domain.TransferKantongRequest, userID uint) (*domain.TransferKantongResponse, error)
 	SetAnggaranUsecase(anggaranUsecase AnggaranUsecase)
 }
 
@@ -229,4 +232,69 @@ func (u *kantongUsecase) DeleteKantong(id string, userID uint) error {
 	}
 
 	return u.kantongRepo.Delete(id, userID)
+}
+
+func (u *kantongUsecase) TransferKantong(req *domain.TransferKantongRequest, userID uint) (*domain.TransferKantongResponse, error) {
+	if req.KantongAsalID == req.KantongTujuanID {
+		return nil, errors.New("kantong asal dan kantong tujuan tidak boleh sama")
+	}
+
+	kantongAsal, err := u.kantongRepo.GetByID(req.KantongAsalID, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("kantong asal tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	kantongTujuan, err := u.kantongRepo.GetByID(req.KantongTujuanID, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("kantong tujuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	if kantongAsal.Saldo < req.Jumlah {
+		return nil, errors.New("saldo kantong asal tidak mencukupi untuk transfer")
+	}
+
+	saldoAsalSebelum := kantongAsal.Saldo
+	saldoTujuanSebelum := kantongTujuan.Saldo
+
+	kantongAsalAfter, kantongTujuanAfter, err := u.kantongRepo.Transfer(req.KantongAsalID, req.KantongTujuanID, req.Jumlah, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	transferResult := &domain.TransferResult{
+		TransferID: generateTransferID(),
+		KantongAsal: domain.TransferKantongDetail{
+			ID:           kantongAsalAfter.ID,
+			Nama:         kantongAsalAfter.Nama,
+			SaldoSebelum: saldoAsalSebelum,
+			SaldoSesudah: kantongAsalAfter.Saldo,
+		},
+		KantongTujuan: domain.TransferKantongDetail{
+			ID:           kantongTujuanAfter.ID,
+			Nama:         kantongTujuanAfter.Nama,
+			SaldoSebelum: saldoTujuanSebelum,
+			SaldoSesudah: kantongTujuanAfter.Saldo,
+		},
+		Jumlah:          req.Jumlah,
+		Catatan:         req.Catatan,
+		TanggalTransfer: time.Now(),
+	}
+
+	return &domain.TransferKantongResponse{
+		Success:   true,
+		Message:   "Transfer antar kantong berhasil dilakukan",
+		Code:      200,
+		Data:      transferResult,
+		Timestamp: time.Now(),
+	}, nil
+}
+
+func generateTransferID() string {
+	return uuid.New().String()
 }

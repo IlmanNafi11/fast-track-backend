@@ -36,6 +36,7 @@ type KantongRepository interface {
 	Delete(id string, userID uint) error
 	IsNameExistForUser(nama string, userID uint, excludeID ...string) (bool, error)
 	GenerateUniqueIDKartu() (string, error)
+	Transfer(kantongAsalID, kantongTujuanID string, jumlah float64, userID uint) (*domain.Kantong, *domain.Kantong, error)
 }
 
 type TransaksiRepository interface {

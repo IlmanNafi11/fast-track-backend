@@ -485,6 +485,121 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /kantong/transfer:
+    post:
+      tags:
+        - Kantong Management
+      summary: Transfer saldo antar kantong
+      description: Endpoint untuk mentransfer saldo dari kantong asal ke kantong tujuan
+      operationId: transferKantong
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferKantongRequest'
+            example:
+              kantong_asal_id: "550e8400-e29b-41d4-a716-446655440001"
+              kantong_tujuan_id: "550e8400-e29b-41d4-a716-446655440002"
+              jumlah: 250000
+              catatan: "Transfer untuk keperluan darurat"
+      responses:
+        '200':
+          description: Transfer berhasil dilakukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferKantongResponse'
+              example:
+                success: true
+                message: "Transfer antar kantong berhasil dilakukan"
+                code: 200
+                data:
+                  transfer_id: "550e8400-e29b-41d4-a716-446655440003"
+                  kantong_asal:
+                    id: "550e8400-e29b-41d4-a716-446655440001"
+                    nama: "Kantong Transport"
+                    saldo_sebelum: 500000
+                    saldo_sesudah: 250000
+                  kantong_tujuan:
+                    id: "550e8400-e29b-41d4-a716-446655440002"
+                    nama: "Kantong Darurat"
+                    saldo_sebelum: 100000
+                    saldo_sesudah: 350000
+                  jumlah: 250000
+                  catatan: "Transfer untuk keperluan darurat"
+                  tanggal_transfer: "2024-01-01T10:30:00Z"
+                timestamp: "2024-01-01T10:30:00Z"
+        '400':
+          description: Parameter tidak valid atau saldo tidak mencukupi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                validation_error:
+                  summary: Error validasi input
+                  value:
+                    success: false
+                    message: "Data tidak valid"
+                    code: 400
+                    errors:
+                      - field: "jumlah"
+                        message: "Jumlah transfer harus lebih dari 0"
+                    timestamp: "2024-01-01T00:00:00Z"
+                insufficient_balance:
+                  summary: Saldo tidak mencukupi
+                  value:
+                    success: false
+                    message: "Saldo kantong asal tidak mencukupi untuk transfer"
+                    code: 400
+                    timestamp: "2024-01-01T00:00:00Z"
+                same_kantong:
+                  summary: Kantong asal dan tujuan sama
+                  value:
+                    success: false
+                    message: "Kantong asal dan kantong tujuan tidak boleh sama"
+                    code: 400
+                    timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Tidak memiliki akses"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '404':
+          description: Kantong tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                kantong_asal_not_found:
+                  summary: Kantong asal tidak ditemukan
+                  value:
+                    success: false
+                    message: "Kantong asal tidak ditemukan"
+                    code: 404
+                    timestamp: "2024-01-01T00:00:00Z"
+                kantong_tujuan_not_found:
+                  summary: Kantong tujuan tidak ditemukan
+                  value:
+                    success: false
+                    message: "Kantong tujuan tidak ditemukan"
+                    code: 404
+                    timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     Kantong:
@@ -772,6 +887,90 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ValidationError'
+
+    TransferKantongRequest:
+      type: object
+      required:
+        - kantong_asal_id
+        - kantong_tujuan_id
+        - jumlah
+      properties:
+        kantong_asal_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+          description: "ID kantong asal (UUID)"
+        kantong_tujuan_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+          description: "ID kantong tujuan (UUID)"
+        jumlah:
+          type: number
+          minimum: 0.01
+          example: 250000
+          description: "Jumlah nominal yang akan ditransfer"
+        catatan:
+          type: string
+          maxLength: 500
+          example: "Transfer untuk keperluan darurat"
+          description: "Catatan transfer (opsional)"
+
+    TransferKantongResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TransferResult'
+
+    TransferResult:
+      type: object
+      properties:
+        transfer_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440003"
+          description: "ID unik transfer"
+        kantong_asal:
+          $ref: '#/components/schemas/TransferKantongDetail'
+        kantong_tujuan:
+          $ref: '#/components/schemas/TransferKantongDetail'
+        jumlah:
+          type: number
+          example: 250000
+          description: "Jumlah yang ditransfer"
+        catatan:
+          type: string
+          nullable: true
+          example: "Transfer untuk keperluan darurat"
+          description: "Catatan transfer"
+        tanggal_transfer:
+          type: string
+          format: date-time
+          example: "2024-01-01T10:30:00Z"
+          description: "Waktu transfer dilakukan"
+
+    TransferKantongDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+          description: "ID kantong"
+        nama:
+          type: string
+          example: "Kantong Transport"
+          description: "Nama kantong"
+        saldo_sebelum:
+          type: number
+          example: 500000
+          description: "Saldo sebelum transfer"
+        saldo_sesudah:
+          type: number
+          example: 250000
+          description: "Saldo setelah transfer"
 
   securitySchemes:
     bearerAuth:

@@ -75,6 +75,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	kantong.Put("/:id", kantongController.UpdateKantong)
 	kantong.Patch("/:id", kantongController.PatchKantong)
 	kantong.Delete("/:id", kantongController.DeleteKantong)
+	kantong.Post("/transfer", kantongController.TransferKantong)
 
 	transaksi := api.Group("/transaksi", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	transaksi.Get("/", transaksiController.GetTransaksiList)

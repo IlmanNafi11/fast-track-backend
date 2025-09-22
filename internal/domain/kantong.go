@@ -111,3 +111,34 @@ func NewKantongListRequest() *KantongListRequest {
 		PerPage:       10,
 	}
 }
+
+type TransferKantongRequest struct {
+	KantongAsalID   string  `json:"kantong_asal_id" validate:"required,uuid"`
+	KantongTujuanID string  `json:"kantong_tujuan_id" validate:"required,uuid"`
+	Jumlah          float64 `json:"jumlah" validate:"required,gt=0"`
+	Catatan         *string `json:"catatan" validate:"omitempty,max=500"`
+}
+
+type TransferKantongDetail struct {
+	ID           string  `json:"id"`
+	Nama         string  `json:"nama"`
+	SaldoSebelum float64 `json:"saldo_sebelum"`
+	SaldoSesudah float64 `json:"saldo_sesudah"`
+}
+
+type TransferResult struct {
+	TransferID      string                `json:"transfer_id"`
+	KantongAsal     TransferKantongDetail `json:"kantong_asal"`
+	KantongTujuan   TransferKantongDetail `json:"kantong_tujuan"`
+	Jumlah          float64               `json:"jumlah"`
+	Catatan         *string               `json:"catatan"`
+	TanggalTransfer time.Time             `json:"tanggal_transfer"`
+}
+
+type TransferKantongResponse struct {
+	Success   bool            `json:"success"`
+	Message   string          `json:"message"`
+	Code      int             `json:"code"`
+	Data      *TransferResult `json:"data"`
+	Timestamp time.Time       `json:"timestamp"`
+}

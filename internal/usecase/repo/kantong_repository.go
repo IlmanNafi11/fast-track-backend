@@ -213,3 +213,56 @@ func (r *kantongRepository) clearUserListCache(userID uint) {
 		return
 	}
 }
+
+func (r *kantongRepository) Transfer(kantongAsalID, kantongTujuanID string, jumlah float64, userID uint) (*domain.Kantong, *domain.Kantong, error) {
+	tx := r.db.Begin()
+	if tx.Error != nil {
+		return nil, nil, tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	var kantongAsal, kantongTujuan domain.Kantong
+
+	if err := tx.Where("id = ? AND user_id = ?", kantongAsalID, userID).First(&kantongAsal).Error; err != nil {
+		tx.Rollback()
+		return nil, nil, err
+	}
+
+	if err := tx.Where("id = ? AND user_id = ?", kantongTujuanID, userID).First(&kantongTujuan).Error; err != nil {
+		tx.Rollback()
+		return nil, nil, err
+	}
+
+	if kantongAsal.Saldo < jumlah {
+		tx.Rollback()
+		return nil, nil, fmt.Errorf("saldo tidak mencukupi")
+	}
+
+	kantongAsal.Saldo -= jumlah
+	kantongTujuan.Saldo += jumlah
+	kantongAsal.UpdatedAt = time.Now()
+	kantongTujuan.UpdatedAt = time.Now()
+
+	if err := tx.Save(&kantongAsal).Error; err != nil {
+		tx.Rollback()
+		return nil, nil, err
+	}
+
+	if err := tx.Save(&kantongTujuan).Error; err != nil {
+		tx.Rollback()
+		return nil, nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, nil, err
+	}
+
+	r.clearUserListCache(userID)
+
+	return &kantongAsal, &kantongTujuan, nil
+}

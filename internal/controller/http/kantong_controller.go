@@ -189,3 +189,34 @@ func (c *KantongController) DeleteKantong(ctx *fiber.Ctx) error {
 
 	return helper.SendSuccessResponse(ctx, 200, "Kantong berhasil dihapus", nil)
 }
+
+func (c *KantongController) TransferKantong(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("user_id").(uint)
+
+	var req domain.TransferKantongRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return helper.SendErrorResponse(ctx, fiber.StatusBadRequest, "Format request tidak valid", nil)
+	}
+
+	if validationErrors := helper.ValidateStruct(req); len(validationErrors) > 0 {
+		return helper.SendValidationErrorResponse(ctx, validationErrors)
+	}
+
+	result, err := c.kantongUsecase.TransferKantong(&req, userID)
+	if err != nil {
+		switch err.Error() {
+		case "kantong asal dan kantong tujuan tidak boleh sama":
+			return helper.SendErrorResponse(ctx, fiber.StatusBadRequest, err.Error(), nil)
+		case "kantong asal tidak ditemukan":
+			return helper.SendErrorResponse(ctx, fiber.StatusNotFound, err.Error(), nil)
+		case "kantong tujuan tidak ditemukan":
+			return helper.SendErrorResponse(ctx, fiber.StatusNotFound, err.Error(), nil)
+		case "saldo kantong asal tidak mencukupi untuk transfer":
+			return helper.SendErrorResponse(ctx, fiber.StatusBadRequest, err.Error(), nil)
+		default:
+			return helper.SendInternalServerErrorResponse(ctx)
+		}
+	}
+
+	return ctx.Status(result.Code).JSON(result)
+}
