@@ -68,6 +68,7 @@ type RedisRepository interface {
 	Decrement(key string) (int64, error)
 	SetExpire(key string, ttl time.Duration) error
 	GetTTL(key string) (time.Duration, error)
+	GetKeys(pattern string) ([]string, error)
 	FlushAll() error
 	Ping() error
 }

@@ -141,6 +141,22 @@ func (r *redisRepository) GetTTL(key string) (time.Duration, error) {
 	return r.rdb.TTL(ctx, key).Result()
 }
 
+func (r *redisRepository) GetKeys(pattern string) ([]string, error) {
+	if r.rdb == nil {
+		return nil, redis.Nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	keys, err := r.rdb.Keys(ctx, pattern).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return keys, nil
+}
+
 func (r *redisRepository) FlushAll() error {
 	if r.rdb == nil {
 		return redis.Nil

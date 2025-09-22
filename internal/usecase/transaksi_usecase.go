@@ -267,11 +267,9 @@ func (uc *transaksiUsecase) generateDetailCacheKey(id string, userID uint) strin
 func (uc *transaksiUsecase) invalidateUserCache(userID uint) {
 	pattern := fmt.Sprintf("transaksi_list:%d:*", userID)
 
-	keys, err := uc.redisRepo.Get(pattern)
+	keys, err := uc.redisRepo.GetKeys(pattern)
 	if err == nil {
-		var keyList []string
-		json.Unmarshal([]byte(keys), &keyList)
-		for _, key := range keyList {
+		for _, key := range keys {
 			uc.redisRepo.Delete(key)
 		}
 	}
