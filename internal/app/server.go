@@ -36,6 +36,9 @@ func NewServer(cfg *config.Config, db *gorm.DB) *fiber.App {
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
 
+	healthUsecase := usecase.NewHealthUsecase(db, cfg)
+	healthController := http.NewHealthController(healthUsecase)
+
 	api := app.Group("/api/v1")
 
 	auth := api.Group("/auth")
@@ -48,12 +51,12 @@ func NewServer(cfg *config.Config, db *gorm.DB) *fiber.App {
 	protected := auth.Group("/", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	protected.Post("logout", authController.Logout)
 
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return helper.SendSuccessResponse(c, fiber.StatusOK, "Server berjalan dengan baik", map[string]string{
-			"status": "healthy",
-			"app":    cfg.App.Name,
-		})
-	})
+	monitoring := api.Group("/monitoring")
+	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)
+	monitoring.Get("/metrics", healthController.GetSystemMetrics)
+	monitoring.Get("/status", healthController.GetApplicationStatus)
+
+	app.Get("/health", healthController.BasicHealthCheck)
 
 	return app
 }

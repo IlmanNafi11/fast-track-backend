@@ -11,13 +11,11 @@ func main() {
 
 	db := config.ConnectDatabase(cfg)
 
-	// Jalankan migration
 	if cfg.Database.AutoMigrate && cfg.Database.MigrateOnStart {
 		log.Printf("🔄 Menjalankan auto migration untuk environment: %s", cfg.App.Env)
 		config.RunMigration(db)
 	}
 
-	// Jalankan seeder berdasarkan konfigurasi
 	if cfg.App.Env == "production" {
 		if cfg.Database.RunSeeder {
 			log.Println("🚨 PERINGATAN: Seeder tidak direkomendasikan untuk production environment!")
