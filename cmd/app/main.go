@@ -10,6 +10,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	db := config.ConnectDatabase(cfg)
+	rdb := config.ConnectRedis(cfg)
 
 	if cfg.Database.AutoMigrate && cfg.Database.MigrateOnStart {
 		log.Printf("🔄 Menjalankan auto migration untuk environment: %s", cfg.App.Env)
@@ -30,7 +31,7 @@ func main() {
 		}
 	}
 
-	server := app.NewServer(cfg, db)
+	server := app.NewServer(cfg, db, rdb)
 
 	log.Printf("Server berjalan di port %s", cfg.App.Port)
 	log.Fatal(server.Listen(":" + cfg.App.Port))
