@@ -20,10 +20,7 @@ func NewLaporanController(laporanUsecase usecase.LaporanUsecase) *LaporanControl
 }
 
 func (ctrl *LaporanController) GetRingkasanLaporan(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.RingkasanLaporanRequest{}
 
@@ -47,10 +44,7 @@ func (ctrl *LaporanController) GetRingkasanLaporan(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetStatistikTahunan(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.StatistikTahunanRequest{}
 
@@ -75,10 +69,7 @@ func (ctrl *LaporanController) GetStatistikTahunan(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetStatistikKantongBulanan(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.StatistikKantongBulananRequest{}
 
@@ -111,10 +102,7 @@ func (ctrl *LaporanController) GetStatistikKantongBulanan(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetTopKantongPengeluaran(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.TopKantongPengeluaranRequest{}
 
@@ -155,10 +143,7 @@ func (ctrl *LaporanController) GetTopKantongPengeluaran(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetStatistikKantongPeriode(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.StatistikKantongPeriodeRequest{}
 
@@ -182,10 +167,7 @@ func (ctrl *LaporanController) GetStatistikKantongPeriode(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.PengeluaranKantongDetailRequest{}
 
@@ -209,10 +191,7 @@ func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetTrenBulanan(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.TrenBulananRequest{}
 
@@ -237,10 +216,7 @@ func (ctrl *LaporanController) GetTrenBulanan(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetPerbandinganKantong(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	response, err := ctrl.laporanUsecase.GetPerbandinganKantong(userID)
 	if err != nil {
@@ -251,10 +227,7 @@ func (ctrl *LaporanController) GetPerbandinganKantong(c *fiber.Ctx) error {
 }
 
 func (ctrl *LaporanController) GetDetailPerbandinganKantong(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	response, err := ctrl.laporanUsecase.GetDetailPerbandinganKantong(userID)
 	if err != nil {

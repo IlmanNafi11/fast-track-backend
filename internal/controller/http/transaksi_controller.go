@@ -20,10 +20,7 @@ func NewTransaksiController(transaksiUsecase usecase.TransaksiUsecase) *Transaks
 }
 
 func (ctrl *TransaksiController) GetTransaksiList(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	req := &domain.TransaksiListRequest{
 		Page:          1,
@@ -74,10 +71,7 @@ func (ctrl *TransaksiController) GetTransaksiList(c *fiber.Ctx) error {
 }
 
 func (ctrl *TransaksiController) GetTransaksiDetail(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	id := c.Params("id")
 	if id == "" {
@@ -96,10 +90,7 @@ func (ctrl *TransaksiController) GetTransaksiDetail(c *fiber.Ctx) error {
 }
 
 func (ctrl *TransaksiController) CreateTransaksi(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	var req domain.CreateTransaksiRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -128,10 +119,7 @@ func (ctrl *TransaksiController) CreateTransaksi(c *fiber.Ctx) error {
 }
 
 func (ctrl *TransaksiController) UpdateTransaksi(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	id := c.Params("id")
 	if id == "" {
@@ -168,10 +156,7 @@ func (ctrl *TransaksiController) UpdateTransaksi(c *fiber.Ctx) error {
 }
 
 func (ctrl *TransaksiController) PatchTransaksi(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	id := c.Params("id")
 	if id == "" {
@@ -208,17 +193,14 @@ func (ctrl *TransaksiController) PatchTransaksi(c *fiber.Ctx) error {
 }
 
 func (ctrl *TransaksiController) DeleteTransaksi(c *fiber.Ctx) error {
-	userID, err := helper.GetUserIDFromToken(c)
-	if err != nil {
-		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
-	}
+	userID := c.Locals("user_id").(uint)
 
 	id := c.Params("id")
 	if id == "" {
 		return helper.SendErrorResponse(c, fiber.StatusBadRequest, "ID transaksi diperlukan", nil)
 	}
 
-	err = ctrl.transaksiUsecase.DeleteTransaksi(id, userID)
+	err := ctrl.transaksiUsecase.DeleteTransaksi(id, userID)
 	if err != nil {
 		if err.Error() == "transaksi tidak ditemukan" {
 			return helper.SendErrorResponse(c, fiber.StatusNotFound, err.Error(), nil)
