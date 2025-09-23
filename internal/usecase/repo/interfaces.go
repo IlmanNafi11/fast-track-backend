@@ -58,6 +58,13 @@ type AnggaranRepository interface {
 	UpdateAnggaranAfterTransaksi(kantongID string, userID uint) error
 }
 
+type LaporanRepository interface {
+	GetRingkasanLaporan(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.RingkasanLaporan, error)
+	GetStatistikTahunan(userID uint, tahun int) (*domain.StatistikTahunan, error)
+	GetStatistikKantongBulanan(userID uint, bulan, tahun int) (*domain.StatistikKantongBulanan, error)
+	GetTopKantongPengeluaran(userID uint, bulan, tahun, limit int) (*domain.TopKantongPengeluaran, error)
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)

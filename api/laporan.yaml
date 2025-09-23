@@ -1,0 +1,700 @@
+openapi: 3.0.3
+info:
+  title: Fiber Boilerplate API - Laporan Management
+  description: API dokumentasi untuk sistem manajemen laporan keuangan pada aplikasi Fast Track
+  version: 1.0.0
+  contact:
+    name: Developer Team
+    email: developer@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+
+paths:
+  /laporan/ringkasan:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan ringkasan laporan keuangan
+      description: Endpoint untuk mendapatkan ringkasan laporan keuangan pada bulan saat ini termasuk total pemasukan, pengeluaran, saldo, dan rata-rata pengeluaran harian dengan dukungan filtering tanggal
+      operationId: getRingkasanLaporan
+      parameters:
+        - name: tanggal_mulai
+          in: query
+          description: Filter berdasarkan tanggal mulai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal 1 bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-01"
+        - name: tanggal_selesai
+          in: query
+          description: Filter berdasarkan tanggal selesai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal akhir bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-31"
+      responses:
+        '200':
+          description: Ringkasan laporan berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RingkasanLaporanResponse'
+              example:
+                success: true
+                message: "Ringkasan laporan berhasil diambil"
+                code: 200
+                data:
+                  total_pemasukan: 5000000
+                  total_pengeluaran: 3500000
+                  total_saldo: 12500000
+                  rata_rata_pengeluaran_harian: 112903.23
+                  periode:
+                    tanggal_mulai: "2024-01-01"
+                    tanggal_selesai: "2024-01-31"
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Tidak memiliki akses"
+                code: 401
+                timestamp: "2024-01-15T12:30:00Z"
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/statistik/tahunan:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan statistik pemasukan dan pengeluaran tahunan
+      description: Endpoint untuk mendapatkan data statistik pemasukan dan pengeluaran pengguna dalam 1 tahun (12 bulan) dengan dukungan filtering berdasarkan tahun
+      operationId: getStatistikTahunan
+      parameters:
+        - name: tahun
+          in: query
+          description: Filter berdasarkan tahun (format YYYY). Jika tidak diisi, menggunakan tahun saat ini
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+          example: 2024
+      responses:
+        '200':
+          description: Statistik tahunan berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistikTahunanResponse'
+              example:
+                success: true
+                message: "Statistik tahunan berhasil diambil"
+                code: 200
+                data:
+                  tahun: 2024
+                  data_bulanan:
+                    - bulan: 1
+                      nama_bulan: "Januari"
+                      total_pemasukan: 5000000
+                      total_pengeluaran: 3500000
+                    - bulan: 2
+                      nama_bulan: "Februari"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3800000
+                    - bulan: 3
+                      nama_bulan: "Maret"
+                      total_pemasukan: 4800000
+                      total_pengeluaran: 3200000
+                    - bulan: 4
+                      nama_bulan: "April"
+                      total_pemasukan: 5100000
+                      total_pengeluaran: 3600000
+                    - bulan: 5
+                      nama_bulan: "Mei"
+                      total_pemasukan: 5300000
+                      total_pengeluaran: 3900000
+                    - bulan: 6
+                      nama_bulan: "Juni"
+                      total_pemasukan: 5000000
+                      total_pengeluaran: 3700000
+                    - bulan: 7
+                      nama_bulan: "Juli"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3500000
+                    - bulan: 8
+                      nama_bulan: "Agustus"
+                      total_pemasukan: 4900000
+                      total_pengeluaran: 3400000
+                    - bulan: 9
+                      nama_bulan: "September"
+                      total_pemasukan: 5100000
+                      total_pengeluaran: 3600000
+                    - bulan: 10
+                      nama_bulan: "Oktober"
+                      total_pemasukan: 5400000
+                      total_pengeluaran: 3800000
+                    - bulan: 11
+                      nama_bulan: "November"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3700000
+                    - bulan: 12
+                      nama_bulan: "Desember"
+                      total_pemasukan: 5500000
+                      total_pengeluaran: 4000000
+                  total_pemasukan_tahun: 61700000
+                  total_pengeluaran_tahun: 43700000
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/statistik/kantong-bulanan:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan statistik pengeluaran per kantong bulanan
+      description: Endpoint untuk mendapatkan data statistik total pengeluaran per kantong pada bulan saat ini
+      operationId: getStatistikKantongBulanan
+      parameters:
+        - name: bulan
+          in: query
+          description: Filter berdasarkan bulan (1-12). Jika tidak diisi, menggunakan bulan saat ini
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 1
+        - name: tahun
+          in: query
+          description: Filter berdasarkan tahun (format YYYY). Jika tidak diisi, menggunakan tahun saat ini
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+          example: 2024
+      responses:
+        '200':
+          description: Statistik kantong bulanan berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistikKantongBulananResponse'
+              example:
+                success: true
+                message: "Statistik kantong bulanan berhasil diambil"
+                code: 200
+                data:
+                  periode:
+                    bulan: 1
+                    nama_bulan: "Januari"
+                    tahun: 2024
+                  data_kantong:
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Kantong Belanja"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 1500000
+                      jumlah_transaksi: 25
+                      persentase: 42.86
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                      kantong_nama: "Transport"
+                      kategori: "Transport"
+                      total_pengeluaran: 800000
+                      jumlah_transaksi: 20
+                      persentase: 22.86
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 600000
+                      jumlah_transaksi: 12
+                      persentase: 17.14
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440004"
+                      kantong_nama: "Makan"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 600000
+                      jumlah_transaksi: 30
+                      persentase: 17.14
+                  total_pengeluaran: 3500000
+                  total_transaksi: 87
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/statistik/top-kantong:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan top 5 kantong dengan pengeluaran terbanyak
+      description: Endpoint untuk mendapatkan data statistik Top 5 Kantong dengan Pengeluaran Terbanyak pada bulan ini
+      operationId: getTopKantongPengeluaran
+      parameters:
+        - name: bulan
+          in: query
+          description: Filter berdasarkan bulan (1-12). Jika tidak diisi, menggunakan bulan saat ini
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 1
+        - name: tahun
+          in: query
+          description: Filter berdasarkan tahun (format YYYY). Jika tidak diisi, menggunakan tahun saat ini
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+          example: 2024
+        - name: limit
+          in: query
+          description: Jumlah kantong teratas yang ingin ditampilkan (1-10). Default 5
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 5
+          example: 5
+      responses:
+        '200':
+          description: Top kantong pengeluaran berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopKantongPengeluaranResponse'
+              example:
+                success: true
+                message: "Top kantong pengeluaran berhasil diambil"
+                code: 200
+                data:
+                  periode:
+                    bulan: 1
+                    nama_bulan: "Januari"
+                    tahun: 2024
+                  top_kantong:
+                    - ranking: 1
+                      kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Kantong Belanja"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 1500000
+                      jumlah_transaksi: 25
+                      persentase_dari_total: 42.86
+                      rata_rata_pengeluaran: 60000
+                    - ranking: 2
+                      kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                      kantong_nama: "Transport"
+                      kategori: "Transport"
+                      total_pengeluaran: 800000
+                      jumlah_transaksi: 20
+                      persentase_dari_total: 22.86
+                      rata_rata_pengeluaran: 40000
+                    - ranking: 3
+                      kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 600000
+                      jumlah_transaksi: 12
+                      persentase_dari_total: 17.14
+                      rata_rata_pengeluaran: 50000
+                    - ranking: 4
+                      kantong_id: "550e8400-e29b-41d4-a716-446655440004"
+                      kantong_nama: "Makan"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 600000
+                      jumlah_transaksi: 30
+                      persentase_dari_total: 17.14
+                      rata_rata_pengeluaran: 20000
+                    - ranking: 5
+                      kantong_id: "550e8400-e29b-41d4-a716-446655440005"
+                      kantong_nama: "Elektronik"
+                      kategori: "Pengeluaran"
+                      total_pengeluaran: 400000
+                      jumlah_transaksi: 8
+                      persentase_dari_total: 11.43
+                      rata_rata_pengeluaran: 50000
+                  total_pengeluaran_semua: 3500000
+                  total_transaksi_semua: 95
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+        - code
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          description: "Status keberhasilan request"
+          example: true
+        message:
+          type: string
+          description: "Pesan response dalam bahasa Indonesia"
+          example: "Data berhasil diambil"
+        code:
+          type: integer
+          description: "HTTP status code"
+          example: 200
+        timestamp:
+          type: string
+          format: date-time
+          description: "Waktu response dalam format ISO 8601"
+          example: "2024-01-15T12:30:00Z"
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              nullable: true
+
+    RingkasanLaporan:
+      type: object
+      properties:
+        total_pemasukan:
+          type: number
+          format: float
+          description: "Total pemasukan berdasarkan transaksi pengguna"
+          example: 5000000
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran berdasarkan transaksi pengguna"
+          example: 3500000
+        total_saldo:
+          type: number
+          format: float
+          description: "Total saldo dari seluruh kantong milik pengguna"
+          example: 12500000
+        rata_rata_pengeluaran_harian:
+          type: number
+          format: float
+          description: "Rata-rata pengeluaran harian dalam periode yang dipilih"
+          example: 112903.23
+        periode:
+          $ref: '#/components/schemas/PeriodeTanggal'
+
+    PeriodeTanggal:
+      type: object
+      properties:
+        tanggal_mulai:
+          type: string
+          format: date
+          description: "Tanggal mulai periode"
+          example: "2024-01-01"
+        tanggal_selesai:
+          type: string
+          format: date
+          description: "Tanggal selesai periode"
+          example: "2024-01-31"
+
+    StatistikTahunan:
+      type: object
+      properties:
+        tahun:
+          type: integer
+          description: "Tahun data statistik"
+          example: 2024
+        data_bulanan:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataBulanan'
+        total_pemasukan_tahun:
+          type: number
+          format: float
+          description: "Total pemasukan dalam 1 tahun"
+          example: 61700000
+        total_pengeluaran_tahun:
+          type: number
+          format: float
+          description: "Total pengeluaran dalam 1 tahun"
+          example: 43700000
+
+    DataBulanan:
+      type: object
+      properties:
+        bulan:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: "Nomor bulan (1-12)"
+          example: 1
+        nama_bulan:
+          type: string
+          description: "Nama bulan dalam bahasa Indonesia"
+          example: "Januari"
+        total_pemasukan:
+          type: number
+          format: float
+          description: "Total pemasukan dalam bulan tersebut"
+          example: 5000000
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran dalam bulan tersebut"
+          example: 3500000
+
+    StatistikKantongBulanan:
+      type: object
+      properties:
+        periode:
+          $ref: '#/components/schemas/PeriodeBulan'
+        data_kantong:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataKantongBulanan'
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran dari semua kantong"
+          example: 3500000
+        total_transaksi:
+          type: integer
+          description: "Total transaksi dari semua kantong"
+          example: 87
+
+    PeriodeBulan:
+      type: object
+      properties:
+        bulan:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: "Nomor bulan (1-12)"
+          example: 1
+        nama_bulan:
+          type: string
+          description: "Nama bulan dalam bahasa Indonesia"
+          example: "Januari"
+        tahun:
+          type: integer
+          description: "Tahun"
+          example: 2024
+
+    DataKantongBulanan:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Kantong Belanja"
+        kategori:
+          type: string
+          description: "Kategori kantong"
+          example: "Pengeluaran"
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran kantong dalam bulan tersebut"
+          example: 1500000
+        jumlah_transaksi:
+          type: integer
+          description: "Jumlah transaksi pengeluaran dalam kantong"
+          example: 25
+        persentase:
+          type: number
+          format: float
+          description: "Persentase pengeluaran kantong dari total pengeluaran"
+          example: 42.86
+
+    TopKantongPengeluaran:
+      type: object
+      properties:
+        periode:
+          $ref: '#/components/schemas/PeriodeBulan'
+        top_kantong:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataTopKantong'
+        total_pengeluaran_semua:
+          type: number
+          format: float
+          description: "Total pengeluaran dari semua kantong"
+          example: 3500000
+        total_transaksi_semua:
+          type: integer
+          description: "Total transaksi dari semua kantong"
+          example: 95
+
+    DataTopKantong:
+      type: object
+      properties:
+        ranking:
+          type: integer
+          description: "Peringkat kantong berdasarkan pengeluaran"
+          example: 1
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Kantong Belanja"
+        kategori:
+          type: string
+          description: "Kategori kantong"
+          example: "Pengeluaran"
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran kantong dalam periode"
+          example: 1500000
+        jumlah_transaksi:
+          type: integer
+          description: "Jumlah transaksi pengeluaran dalam kantong"
+          example: 25
+        persentase_dari_total:
+          type: number
+          format: float
+          description: "Persentase pengeluaran kantong dari total pengeluaran"
+          example: 42.86
+        rata_rata_pengeluaran:
+          type: number
+          format: float
+          description: "Rata-rata pengeluaran per transaksi"
+          example: 60000
+
+    RingkasanLaporanResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RingkasanLaporan'
+
+    StatistikTahunanResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/StatistikTahunan'
+
+    StatistikKantongBulananResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/StatistikKantongBulanan'
+
+    TopKantongPengeluaranResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TopKantongPengeluaran'
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          example: "tanggal_mulai"
+          description: "Field yang mengalami error validasi"
+        message:
+          type: string
+          example: "Format tanggal tidak valid"
+          description: "Pesan error validasi"
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                $ref: '#/components/schemas/ValidationError'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Laporan Management
+    description: Endpoint untuk manajemen laporan keuangan dan statistik

@@ -37,6 +37,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	kantongRepo := repo.NewKantongRepository(db, redisRepo)
 	transaksiRepo := repo.NewTransaksiRepository(db)
 	anggaranRepo := repo.NewAnggaranRepository(db, redisRepo)
+	laporanRepo := repo.NewLaporanRepository(db)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -49,6 +50,9 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	anggaranUsecase := usecase.NewAnggaranUsecase(anggaranRepo, kantongRepo, transaksiRepo, redisRepo)
 	anggaranController := http.NewAnggaranController(anggaranUsecase)
+
+	laporanUsecase := usecase.NewLaporanUsecase(laporanRepo, redisRepo)
+	laporanController := http.NewLaporanController(laporanUsecase)
 
 	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
 	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
@@ -89,6 +93,12 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	anggaran.Get("/", anggaranController.GetAnggaranList)
 	anggaran.Get("/:kantong_id", anggaranController.GetAnggaranDetail)
 	anggaran.Post("/penyesuaian", anggaranController.CreatePenyesuaianAnggaran)
+
+	laporan := api.Group("/laporan", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	laporan.Get("/ringkasan", laporanController.GetRingkasanLaporan)
+	laporan.Get("/statistik/tahunan", laporanController.GetStatistikTahunan)
+	laporan.Get("/statistik/kantong-bulanan", laporanController.GetStatistikKantongBulanan)
+	laporan.Get("/statistik/top-kantong", laporanController.GetTopKantongPengeluaran)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)
