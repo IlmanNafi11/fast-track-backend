@@ -132,6 +132,29 @@ func (r *roleRepository) Create(role *domain.Role) error {
 	return nil
 }
 
+func (r *roleRepository) CreateWithPermissions(role *domain.Role, permissionIDs []string) error {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(role).Error; err != nil {
+			return err
+		}
+
+		if len(permissionIDs) > 0 {
+			if err := r.updateRolePermissionsInTx(tx, role.ID, permissionIDs); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	r.invalidateCache()
+	return nil
+}
+
 func (r *roleRepository) Update(role *domain.Role) error {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("nama", "deskripsi", "status", "updated_at").Updates(role).Error; err != nil {

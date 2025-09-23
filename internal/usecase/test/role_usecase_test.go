@@ -41,6 +41,11 @@ func (m *MockRoleRepository) Create(role *domain.Role) error {
 	return args.Error(0)
 }
 
+func (m *MockRoleRepository) CreateWithPermissions(role *domain.Role, permissionIDs []string) error {
+	args := m.Called(role, permissionIDs)
+	return args.Error(0)
+}
+
 func (m *MockRoleRepository) Update(role *domain.Role) error {
 	args := m.Called(role)
 	return args.Error(0)
@@ -188,7 +193,7 @@ func TestRoleUsecase_CreateRole(t *testing.T) {
 
 		mockRoleRepo.On("IsNameExists", "new_role", mock.Anything).Return(false, nil)
 		mockRoleRepo.On("ValidatePermissions", []string{"perm-1", "perm-2"}).Return([]string{}, nil)
-		mockRoleRepo.On("Create", mock.AnythingOfType("*domain.Role")).Return(nil)
+		mockRoleRepo.On("CreateWithPermissions", mock.AnythingOfType("*domain.Role"), []string{"perm-1", "perm-2"}).Return(nil)
 
 		createdRole := &domain.Role{
 			ID:        "role-1",
@@ -282,6 +287,7 @@ func TestRoleUsecase_UpdateRole(t *testing.T) {
 		mockRoleRepo.On("IsNameExists", "new_name", mock.Anything).Return(false, nil)
 		mockRoleRepo.On("ValidatePermissions", []string{"perm-1"}).Return([]string{}, nil)
 		mockRoleRepo.On("Update", mock.AnythingOfType("*domain.Role")).Return(nil)
+		mockRoleRepo.On("UpdateRolePermissions", "role-1", []string{"perm-1"}).Return(nil)
 
 		updatedRole := &domain.Role{
 			ID:        "role-1",

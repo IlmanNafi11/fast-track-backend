@@ -51,10 +51,7 @@ func (ctrl *RoleController) GetRoleList(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return helper.SendSuccessResponse(c, fiber.StatusOK, "Daftar role berhasil diambil", fiber.Map{
-		"data": roles,
-		"meta": meta,
-	})
+	return helper.SendPaginatedResponse(c, fiber.StatusOK, "Daftar role berhasil diambil", roles, *meta)
 }
 
 func (ctrl *RoleController) GetRoleByID(c *fiber.Ctx) error {

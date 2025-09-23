@@ -95,21 +95,15 @@ func (u *roleUsecase) CreateRole(req *domain.CreateRoleRequest) (*domain.RoleRes
 		return nil, errors.New("beberapa permission tidak ditemukan atau tidak valid")
 	}
 
-	permissions := make([]domain.Permission, len(req.PermissionIDs))
-	for i, permissionID := range req.PermissionIDs {
-		permissions[i] = domain.Permission{ID: permissionID}
-	}
-
 	role := &domain.Role{
-		Nama:        req.Nama,
-		Deskripsi:   req.Deskripsi,
-		Status:      req.Status,
-		Permissions: permissions,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		Nama:      req.Nama,
+		Deskripsi: req.Deskripsi,
+		Status:    req.Status,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
-	if err := u.roleRepo.Create(role); err != nil {
+	if err := u.roleRepo.CreateWithPermissions(role, req.PermissionIDs); err != nil {
 		return nil, err
 	}
 
@@ -150,18 +144,16 @@ func (u *roleUsecase) UpdateRole(id string, req *domain.UpdateRoleRequest) (*dom
 		return nil, errors.New("beberapa permission tidak ditemukan atau tidak valid")
 	}
 
-	permissions := make([]domain.Permission, len(req.PermissionIDs))
-	for i, permissionID := range req.PermissionIDs {
-		permissions[i] = domain.Permission{ID: permissionID}
-	}
-
 	role.Nama = req.Nama
 	role.Deskripsi = req.Deskripsi
 	role.Status = req.Status
-	role.Permissions = permissions
 	role.UpdatedAt = time.Now()
 
 	if err := u.roleRepo.Update(role); err != nil {
+		return nil, err
+	}
+
+	if err := u.roleRepo.UpdateRolePermissions(id, req.PermissionIDs); err != nil {
 		return nil, err
 	}
 

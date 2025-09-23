@@ -98,6 +98,7 @@ type RoleRepository interface {
 	GetByID(id string) (*domain.Role, error)
 	GetByNama(nama string) (*domain.Role, error)
 	Create(role *domain.Role) error
+	CreateWithPermissions(role *domain.Role, permissionIDs []string) error
 	Update(role *domain.Role) error
 	Delete(id string) error
 	IsNameExists(nama string, excludeID ...string) (bool, error)
