@@ -65,6 +65,9 @@ type LaporanRepository interface {
 	GetTopKantongPengeluaran(userID uint, bulan, tahun, limit int) (*domain.TopKantongPengeluaran, error)
 	GetStatistikKantongPeriode(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.StatistikKantongPeriode, error)
 	GetPengeluaranKantongDetail(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.PengeluaranKantongDetail, error)
+	GetTrenBulanan(userID uint, tahun int) (*domain.TrenBulanan, error)
+	GetPerbandinganKantong(userID uint, bulanIni, tahunIni, bulanLalu, tahunLalu int) (*domain.PerbandinganKantong, error)
+	GetDetailPerbandinganKantong(userID uint, bulanIni, tahunIni, bulanLalu, tahunLalu int) (*domain.DetailPerbandinganKantong, error)
 }
 
 type RedisRepository interface {

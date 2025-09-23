@@ -175,3 +175,74 @@ type PengeluaranKantongDetailResponse struct {
 	Data      PengeluaranKantongDetail `json:"data"`
 	Timestamp time.Time                `json:"timestamp"`
 }
+
+type TrenBulanan struct {
+	Tahun                 int           `json:"tahun"`
+	DataTren              []DataBulanan `json:"data_tren"`
+	TotalPemasukanTahun   float64       `json:"total_pemasukan_tahun"`
+	TotalPengeluaranTahun float64       `json:"total_pengeluaran_tahun"`
+}
+
+type TrenBulananRequest struct {
+	Tahun *int `json:"tahun" query:"tahun" validate:"omitempty,min=2020,max=2030"`
+}
+
+type TrenBulananResponse struct {
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	Code      int         `json:"code"`
+	Data      TrenBulanan `json:"data"`
+	Timestamp time.Time   `json:"timestamp"`
+}
+
+type PerbandinganKantong struct {
+	BulanIni        PeriodeBulan              `json:"bulan_ini"`
+	BulanSebelumnya PeriodeBulan              `json:"bulan_sebelumnya"`
+	DataKantong     []DataPerbandinganKantong `json:"data_kantong"`
+	TotalBulanIni   float64                   `json:"total_bulan_ini"`
+	TotalBulanLalu  float64                   `json:"total_bulan_lalu"`
+}
+
+type DataPerbandinganKantong struct {
+	KantongID       string  `json:"kantong_id"`
+	KantongNama     string  `json:"kantong_nama"`
+	JumlahBulanIni  float64 `json:"jumlah_bulan_ini"`
+	JumlahBulanLalu float64 `json:"jumlah_bulan_lalu"`
+}
+
+type PerbandinganKantongResponse struct {
+	Success   bool                `json:"success"`
+	Message   string              `json:"message"`
+	Code      int                 `json:"code"`
+	Data      PerbandinganKantong `json:"data"`
+	Timestamp time.Time           `json:"timestamp"`
+}
+
+type DetailPerbandinganKantong struct {
+	BulanIni        PeriodeBulan                    `json:"bulan_ini"`
+	BulanSebelumnya PeriodeBulan                    `json:"bulan_sebelumnya"`
+	DataKantong     []DataDetailPerbandinganKantong `json:"data_kantong"`
+	TotalBulanIni   float64                         `json:"total_bulan_ini"`
+	TotalBulanLalu  float64                         `json:"total_bulan_lalu"`
+	RataRataTotal   float64                         `json:"rata_rata_total"`
+	PersentaseTotal float64                         `json:"persentase_total"`
+	TrendTotal      string                          `json:"trend_total"`
+}
+
+type DataDetailPerbandinganKantong struct {
+	KantongID           string  `json:"kantong_id"`
+	KantongNama         string  `json:"kantong_nama"`
+	JumlahBulanIni      float64 `json:"jumlah_bulan_ini"`
+	JumlahBulanLalu     float64 `json:"jumlah_bulan_lalu"`
+	RataRataPengeluaran float64 `json:"rata_rata_pengeluaran"`
+	Persentase          float64 `json:"persentase"`
+	Trend               string  `json:"trend"`
+}
+
+type DetailPerbandinganKantongResponse struct {
+	Success   bool                      `json:"success"`
+	Message   string                    `json:"message"`
+	Code      int                       `json:"code"`
+	Data      DetailPerbandinganKantong `json:"data"`
+	Timestamp time.Time                 `json:"timestamp"`
+}

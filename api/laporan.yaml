@@ -531,6 +531,230 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /laporan/tren/bulanan:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan tren pemasukan dan pengeluaran bulanan
+      description: Endpoint untuk mendapatkan data tren pemasukan dan pengeluaran dalam 12 bulan dengan dukungan filtering berdasarkan tahun
+      operationId: getTrenBulanan
+      parameters:
+        - name: tahun
+          in: query
+          description: Filter berdasarkan tahun (format YYYY). Jika tidak diisi, menggunakan tahun saat ini
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+          example: 2024
+      responses:
+        '200':
+          description: Data tren bulanan berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrenBulananResponse'
+              example:
+                success: true
+                message: "Data tren bulanan berhasil diambil"
+                code: 200
+                data:
+                  tahun: 2024
+                  data_tren:
+                    - bulan: 1
+                      nama_bulan: "Januari"
+                      total_pemasukan: 5000000
+                      total_pengeluaran: 3500000
+                    - bulan: 2
+                      nama_bulan: "Februari"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3800000
+                    - bulan: 3
+                      nama_bulan: "Maret"
+                      total_pemasukan: 4800000
+                      total_pengeluaran: 3200000
+                    - bulan: 4
+                      nama_bulan: "April"
+                      total_pemasukan: 5100000
+                      total_pengeluaran: 3600000
+                    - bulan: 5
+                      nama_bulan: "Mei"
+                      total_pemasukan: 5300000
+                      total_pengeluaran: 3900000
+                    - bulan: 6
+                      nama_bulan: "Juni"
+                      total_pemasukan: 5000000
+                      total_pengeluaran: 3700000
+                    - bulan: 7
+                      nama_bulan: "Juli"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3500000
+                    - bulan: 8
+                      nama_bulan: "Agustus"
+                      total_pemasukan: 4900000
+                      total_pengeluaran: 3400000
+                    - bulan: 9
+                      nama_bulan: "September"
+                      total_pemasukan: 5100000
+                      total_pengeluaran: 3600000
+                    - bulan: 10
+                      nama_bulan: "Oktober"
+                      total_pemasukan: 5400000
+                      total_pengeluaran: 3800000
+                    - bulan: 11
+                      nama_bulan: "November"
+                      total_pemasukan: 5200000
+                      total_pengeluaran: 3700000
+                    - bulan: 12
+                      nama_bulan: "Desember"
+                      total_pemasukan: 5500000
+                      total_pengeluaran: 4000000
+                  total_pemasukan_tahun: 61700000
+                  total_pengeluaran_tahun: 43700000
+                timestamp: "2024-09-23T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/perbandingan/kantong:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan perbandingan pengeluaran per kantong
+      description: Endpoint untuk mendapatkan perbandingan pengeluaran per kantong bulan ini vs bulan sebelumnya
+      operationId: getPerbandinganKantong
+      responses:
+        '200':
+          description: Perbandingan pengeluaran per kantong berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerbandinganKantongResponse'
+              example:
+                success: true
+                message: "Perbandingan pengeluaran per kantong berhasil diambil"
+                code: 200
+                data:
+                  bulan_ini:
+                    bulan: 9
+                    nama_bulan: "September"
+                    tahun: 2024
+                  bulan_sebelumnya:
+                    bulan: 8
+                    nama_bulan: "Agustus"
+                    tahun: 2024
+                  data_kantong:
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Belanja Harian"
+                      jumlah_bulan_ini: 1500000
+                      jumlah_bulan_lalu: 1200000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440002" 
+                      kantong_nama: "Transport"
+                      jumlah_bulan_ini: 800000
+                      jumlah_bulan_lalu: 750000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      jumlah_bulan_ini: 600000
+                      jumlah_bulan_lalu: 900000
+                  total_bulan_ini: 2900000
+                  total_bulan_lalu: 2850000
+                timestamp: "2024-09-23T12:30:00Z"
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/perbandingan/kantong/detail:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan detail perbandingan pengeluaran per kantong
+      description: Endpoint untuk mendapatkan detail lengkap perbandingan pengeluaran per kantong termasuk rata-rata dan persentase perubahan
+      operationId: getDetailPerbandinganKantong
+      responses:
+        '200':
+          description: Detail perbandingan pengeluaran per kantong berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailPerbandinganKantongResponse'
+              example:
+                success: true
+                message: "Detail perbandingan pengeluaran per kantong berhasil diambil"
+                code: 200
+                data:
+                  bulan_ini:
+                    bulan: 9
+                    nama_bulan: "September"
+                    tahun: 2024
+                  bulan_sebelumnya:
+                    bulan: 8
+                    nama_bulan: "Agustus"
+                    tahun: 2024
+                  data_kantong:
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Belanja Harian"
+                      jumlah_bulan_ini: 1500000
+                      jumlah_bulan_lalu: 1200000
+                      rata_rata_pengeluaran: 1350000
+                      persentase: 25.0
+                      trend: "naik"
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                      kantong_nama: "Transport"
+                      jumlah_bulan_ini: 800000
+                      jumlah_bulan_lalu: 750000
+                      rata_rata_pengeluaran: 775000
+                      persentase: 6.67
+                      trend: "naik"
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      jumlah_bulan_ini: 600000
+                      jumlah_bulan_lalu: 900000
+                      rata_rata_pengeluaran: 750000
+                      persentase: -33.33
+                      trend: "turun"
+                  total_bulan_ini: 2900000
+                  total_bulan_lalu: 2850000
+                  rata_rata_total: 2875000
+                  persentase_total: 1.75
+                  trend_total: "naik"
+                timestamp: "2024-09-23T12:30:00Z"
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     BaseResponse:
@@ -918,6 +1142,175 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/PengeluaranKantongDetail'
+
+    TrenBulanan:
+      type: object
+      properties:
+        tahun:
+          type: integer
+          description: "Tahun dari data tren"
+          example: 2024
+        data_tren:
+          type: array
+          description: "Data tren pemasukan dan pengeluaran per bulan"
+          items:
+            $ref: '#/components/schemas/DataBulanan'
+        total_pemasukan_tahun:
+          type: number
+          format: float
+          description: "Total pemasukan dalam 1 tahun"
+          example: 61700000
+        total_pengeluaran_tahun:
+          type: number
+          format: float
+          description: "Total pengeluaran dalam 1 tahun"
+          example: 43700000
+
+    TrenBulananResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TrenBulanan'
+
+    PerbandinganKantong:
+      type: object
+      properties:
+        bulan_ini:
+          $ref: '#/components/schemas/PeriodeBulan'
+        bulan_sebelumnya:
+          $ref: '#/components/schemas/PeriodeBulan'
+        data_kantong:
+          type: array
+          description: "Data perbandingan pengeluaran per kantong"
+          items:
+            $ref: '#/components/schemas/DataPerbandinganKantong'
+        total_bulan_ini:
+          type: number
+          format: float
+          description: "Total pengeluaran bulan ini"
+          example: 2900000
+        total_bulan_lalu:
+          type: number
+          format: float
+          description: "Total pengeluaran bulan lalu"
+          example: 2850000
+
+    DataPerbandinganKantong:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Belanja Harian"
+        jumlah_bulan_ini:
+          type: number
+          format: float
+          description: "Jumlah pengeluaran bulan ini"
+          example: 1500000
+        jumlah_bulan_lalu:
+          type: number
+          format: float
+          description: "Jumlah pengeluaran bulan lalu"
+          example: 1200000
+
+    PerbandinganKantongResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PerbandinganKantong'
+
+    DetailPerbandinganKantong:
+      type: object
+      properties:
+        bulan_ini:
+          $ref: '#/components/schemas/PeriodeBulan'
+        bulan_sebelumnya:
+          $ref: '#/components/schemas/PeriodeBulan'
+        data_kantong:
+          type: array
+          description: "Data detail perbandingan pengeluaran per kantong"
+          items:
+            $ref: '#/components/schemas/DataDetailPerbandinganKantong'
+        total_bulan_ini:
+          type: number
+          format: float
+          description: "Total pengeluaran bulan ini"
+          example: 2900000
+        total_bulan_lalu:
+          type: number
+          format: float
+          description: "Total pengeluaran bulan lalu"
+          example: 2850000
+        rata_rata_total:
+          type: number
+          format: float
+          description: "Rata-rata total pengeluaran"
+          example: 2875000
+        persentase_total:
+          type: number
+          format: float
+          description: "Persentase perubahan total pengeluaran"
+          example: 1.75
+        trend_total:
+          type: string
+          enum: ["naik", "turun", "stabil"]
+          description: "Trend perubahan total pengeluaran"
+          example: "naik"
+
+    DataDetailPerbandinganKantong:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Belanja Harian"
+        jumlah_bulan_ini:
+          type: number
+          format: float
+          description: "Jumlah pengeluaran bulan ini"
+          example: 1500000
+        jumlah_bulan_lalu:
+          type: number
+          format: float
+          description: "Jumlah pengeluaran bulan lalu"
+          example: 1200000
+        rata_rata_pengeluaran:
+          type: number
+          format: float
+          description: "Rata-rata pengeluaran antara bulan ini dan bulan lalu"
+          example: 1350000
+        persentase:
+          type: number
+          format: float
+          description: "Persentase perubahan pengeluaran (positif=naik, negatif=turun)"
+          example: 25.0
+        trend:
+          type: string
+          enum: ["naik", "turun", "stabil"]
+          description: "Trend perubahan pengeluaran kantong"
+          example: "naik"
+
+    DetailPerbandinganKantongResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DetailPerbandinganKantong'
 
     ValidationError:
       type: object

@@ -14,6 +14,9 @@ type LaporanUsecase interface {
 	GetTopKantongPengeluaran(userID uint, req *domain.TopKantongPengeluaranRequest) (*domain.TopKantongPengeluaranResponse, error)
 	GetStatistikKantongPeriode(userID uint, req *domain.StatistikKantongPeriodeRequest) (*domain.StatistikKantongPeriodeResponse, error)
 	GetPengeluaranKantongDetail(userID uint, req *domain.PengeluaranKantongDetailRequest) (*domain.PengeluaranKantongDetailResponse, error)
+	GetTrenBulanan(userID uint, req *domain.TrenBulananRequest) (*domain.TrenBulananResponse, error)
+	GetPerbandinganKantong(userID uint) (*domain.PerbandinganKantongResponse, error)
+	GetDetailPerbandinganKantong(userID uint) (*domain.DetailPerbandinganKantongResponse, error)
 }
 
 type laporanUsecase struct {
@@ -246,6 +249,114 @@ func (uc *laporanUsecase) GetPengeluaranKantongDetail(userID uint, req *domain.P
 	}
 
 	uc.redisRepo.SetJSON(cacheKey, response, 20*time.Minute)
+
+	return response, nil
+}
+
+func (uc *laporanUsecase) GetTrenBulanan(userID uint, req *domain.TrenBulananRequest) (*domain.TrenBulananResponse, error) {
+	tahun := time.Now().Year()
+	if req.Tahun != nil {
+		tahun = *req.Tahun
+	}
+
+	cacheKey := fmt.Sprintf("tren_bulanan:%d:%d", userID, tahun)
+
+	var response *domain.TrenBulananResponse
+	err := uc.redisRepo.GetJSON(cacheKey, &response)
+	if err == nil && response != nil {
+		return response, nil
+	}
+
+	data, err := uc.laporanRepo.GetTrenBulanan(userID, tahun)
+	if err != nil {
+		return nil, err
+	}
+
+	response = &domain.TrenBulananResponse{
+		Success:   true,
+		Message:   "Data tren bulanan berhasil diambil",
+		Code:      200,
+		Data:      *data,
+		Timestamp: time.Now(),
+	}
+
+	uc.redisRepo.SetJSON(cacheKey, response, 10*time.Minute)
+
+	return response, nil
+}
+
+func (uc *laporanUsecase) GetPerbandinganKantong(userID uint) (*domain.PerbandinganKantongResponse, error) {
+	now := time.Now()
+	bulanIni := int(now.Month())
+	tahunIni := now.Year()
+
+	bulanLalu := bulanIni - 1
+	tahunLalu := tahunIni
+	if bulanLalu == 0 {
+		bulanLalu = 12
+		tahunLalu = tahunIni - 1
+	}
+
+	cacheKey := fmt.Sprintf("perbandingan_kantong:%d:%d_%d:%d_%d", userID, bulanIni, tahunIni, bulanLalu, tahunLalu)
+
+	var response *domain.PerbandinganKantongResponse
+	err := uc.redisRepo.GetJSON(cacheKey, &response)
+	if err == nil && response != nil {
+		return response, nil
+	}
+
+	data, err := uc.laporanRepo.GetPerbandinganKantong(userID, bulanIni, tahunIni, bulanLalu, tahunLalu)
+	if err != nil {
+		return nil, err
+	}
+
+	response = &domain.PerbandinganKantongResponse{
+		Success:   true,
+		Message:   "Perbandingan pengeluaran per kantong berhasil diambil",
+		Code:      200,
+		Data:      *data,
+		Timestamp: time.Now(),
+	}
+
+	uc.redisRepo.SetJSON(cacheKey, response, 15*time.Minute)
+
+	return response, nil
+}
+
+func (uc *laporanUsecase) GetDetailPerbandinganKantong(userID uint) (*domain.DetailPerbandinganKantongResponse, error) {
+	now := time.Now()
+	bulanIni := int(now.Month())
+	tahunIni := now.Year()
+
+	bulanLalu := bulanIni - 1
+	tahunLalu := tahunIni
+	if bulanLalu == 0 {
+		bulanLalu = 12
+		tahunLalu = tahunIni - 1
+	}
+
+	cacheKey := fmt.Sprintf("detail_perbandingan_kantong:%d:%d_%d:%d_%d", userID, bulanIni, tahunIni, bulanLalu, tahunLalu)
+
+	var response *domain.DetailPerbandinganKantongResponse
+	err := uc.redisRepo.GetJSON(cacheKey, &response)
+	if err == nil && response != nil {
+		return response, nil
+	}
+
+	data, err := uc.laporanRepo.GetDetailPerbandinganKantong(userID, bulanIni, tahunIni, bulanLalu, tahunLalu)
+	if err != nil {
+		return nil, err
+	}
+
+	response = &domain.DetailPerbandinganKantongResponse{
+		Success:   true,
+		Message:   "Detail perbandingan pengeluaran per kantong berhasil diambil",
+		Code:      200,
+		Data:      *data,
+		Timestamp: time.Now(),
+	}
+
+	uc.redisRepo.SetJSON(cacheKey, response, 18*time.Minute)
 
 	return response, nil
 }

@@ -207,3 +207,59 @@ func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
+
+func (ctrl *LaporanController) GetTrenBulanan(c *fiber.Ctx) error {
+	userID, err := helper.GetUserIDFromToken(c)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
+	}
+
+	req := &domain.TrenBulananRequest{}
+
+	if tahun := c.Query("tahun"); tahun != "" {
+		if tahunInt, err := strconv.Atoi(tahun); err == nil {
+			req.Tahun = &tahunInt
+		} else {
+			return helper.SendErrorResponse(c, fiber.StatusBadRequest, "Format tahun tidak valid", nil)
+		}
+	}
+
+	if err := helper.ValidateStruct(req); err != nil {
+		return helper.SendValidationErrorResponse(c, err)
+	}
+
+	response, err := ctrl.laporanUsecase.GetTrenBulanan(userID, req)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func (ctrl *LaporanController) GetPerbandinganKantong(c *fiber.Ctx) error {
+	userID, err := helper.GetUserIDFromToken(c)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
+	}
+
+	response, err := ctrl.laporanUsecase.GetPerbandinganKantong(userID)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func (ctrl *LaporanController) GetDetailPerbandinganKantong(c *fiber.Ctx) error {
+	userID, err := helper.GetUserIDFromToken(c)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
+	}
+
+	response, err := ctrl.laporanUsecase.GetDetailPerbandinganKantong(userID)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
