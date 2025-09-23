@@ -39,6 +39,8 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	anggaranRepo := repo.NewAnggaranRepository(db, redisRepo)
 	laporanRepo := repo.NewLaporanRepository(db)
 	subscriptionPlanRepo := repo.NewSubscriptionPlanRepository(db, redisRepo)
+	permissionRepo := repo.NewPermissionRepository(db, redisRepo)
+	roleRepo := repo.NewRoleRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -57,6 +59,12 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	subscriptionPlanUsecase := usecase.NewSubscriptionPlanUsecase(subscriptionPlanRepo)
 	subscriptionPlanController := http.NewSubscriptionPlanController(subscriptionPlanUsecase)
+
+	permissionUsecase := usecase.NewPermissionUsecase(permissionRepo)
+	permissionController := http.NewPermissionController(permissionUsecase)
+
+	roleUsecase := usecase.NewRoleUsecase(roleRepo, permissionRepo)
+	roleController := http.NewRoleController(roleUsecase)
 
 	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
 	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
@@ -116,6 +124,21 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	subscriptionPlan.Put("/:id", subscriptionPlanController.Update)
 	subscriptionPlan.Patch("/:id", subscriptionPlanController.Patch)
 	subscriptionPlan.Delete("/:id", subscriptionPlanController.Delete)
+
+	permission := api.Group("/permission", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	permission.Get("/", permissionController.GetPermissionList)
+	permission.Get("/:id", permissionController.GetPermissionByID)
+	permission.Post("/", permissionController.CreatePermission)
+	permission.Put("/:id", permissionController.UpdatePermission)
+	permission.Delete("/:id", permissionController.DeletePermission)
+
+	role := api.Group("/role", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	role.Get("/", roleController.GetRoleList)
+	role.Get("/:id", roleController.GetRoleByID)
+	role.Post("/", roleController.CreateRole)
+	role.Put("/:id", roleController.UpdateRole)
+	role.Delete("/:id", roleController.DeleteRole)
+	role.Get("/:id/permissions", roleController.GetRolePermissions)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

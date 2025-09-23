@@ -82,6 +82,31 @@ type SubscriptionPlanRepository interface {
 	CountActiveUsers(planID string) (int64, error)
 }
 
+type PermissionRepository interface {
+	GetAll(req *domain.PermissionListRequest) ([]*domain.Permission, int, error)
+	GetByID(id string) (*domain.Permission, error)
+	GetByNama(nama string) (*domain.Permission, error)
+	Create(permission *domain.Permission) error
+	Update(permission *domain.Permission) error
+	Delete(id string) error
+	IsNameExists(nama string, excludeID ...string) (bool, error)
+	IsUsedByRoles(id string) (bool, error)
+}
+
+type RoleRepository interface {
+	GetAll(req *domain.RoleListRequest) ([]*domain.Role, int, error)
+	GetByID(id string) (*domain.Role, error)
+	GetByNama(nama string) (*domain.Role, error)
+	Create(role *domain.Role) error
+	Update(role *domain.Role) error
+	Delete(id string) error
+	IsNameExists(nama string, excludeID ...string) (bool, error)
+	IsUsedByUsers(id string) (bool, error)
+	GetRolePermissions(roleID string, req *domain.RolePermissionListRequest) ([]*domain.Permission, int, error)
+	UpdateRolePermissions(roleID string, permissionIDs []string) error
+	ValidatePermissions(permissionIDs []string) ([]string, error)
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)
