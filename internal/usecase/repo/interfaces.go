@@ -70,6 +70,18 @@ type LaporanRepository interface {
 	GetDetailPerbandinganKantong(userID uint, bulanIni, tahunIni, bulanLalu, tahunLalu int) (*domain.DetailPerbandinganKantong, error)
 }
 
+type SubscriptionPlanRepository interface {
+	GetAll(req *domain.SubscriptionPlanListRequest) ([]*domain.SubscriptionPlan, int, error)
+	GetByID(id string) (*domain.SubscriptionPlan, error)
+	GetByKode(kode string) (*domain.SubscriptionPlan, error)
+	Create(plan *domain.SubscriptionPlan) error
+	Update(plan *domain.SubscriptionPlan) error
+	Delete(id string) error
+	IsNameExists(nama string, excludeID ...string) (bool, error)
+	IsKodeExists(kode string, excludeID ...string) (bool, error)
+	CountActiveUsers(planID string) (int64, error)
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)

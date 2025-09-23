@@ -38,6 +38,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	transaksiRepo := repo.NewTransaksiRepository(db)
 	anggaranRepo := repo.NewAnggaranRepository(db, redisRepo)
 	laporanRepo := repo.NewLaporanRepository(db)
+	subscriptionPlanRepo := repo.NewSubscriptionPlanRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -53,6 +54,9 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	laporanUsecase := usecase.NewLaporanUsecase(laporanRepo, redisRepo)
 	laporanController := http.NewLaporanController(laporanUsecase)
+
+	subscriptionPlanUsecase := usecase.NewSubscriptionPlanUsecase(subscriptionPlanRepo)
+	subscriptionPlanController := http.NewSubscriptionPlanController(subscriptionPlanUsecase)
 
 	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
 	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
@@ -104,6 +108,14 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	laporan.Get("/tren/bulanan", laporanController.GetTrenBulanan)
 	laporan.Get("/perbandingan/kantong", laporanController.GetPerbandinganKantong)
 	laporan.Get("/perbandingan/kantong/detail", laporanController.GetDetailPerbandinganKantong)
+
+	subscriptionPlan := api.Group("/subscription-plans", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	subscriptionPlan.Get("/", subscriptionPlanController.GetAll)
+	subscriptionPlan.Get("/:id", subscriptionPlanController.GetByID)
+	subscriptionPlan.Post("/", subscriptionPlanController.Create)
+	subscriptionPlan.Put("/:id", subscriptionPlanController.Update)
+	subscriptionPlan.Patch("/:id", subscriptionPlanController.Patch)
+	subscriptionPlan.Delete("/:id", subscriptionPlanController.Delete)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)
