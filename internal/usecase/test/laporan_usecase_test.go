@@ -115,6 +115,22 @@ func (m *MockLaporanRepository) GetTopKantongPengeluaran(userID uint, bulan, tah
 	return args.Get(0).(*domain.TopKantongPengeluaran), args.Error(1)
 }
 
+func (m *MockLaporanRepository) GetStatistikKantongPeriode(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.StatistikKantongPeriode, error) {
+	args := m.Called(userID, tanggalMulai, tanggalSelesai)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.StatistikKantongPeriode), args.Error(1)
+}
+
+func (m *MockLaporanRepository) GetPengeluaranKantongDetail(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.PengeluaranKantongDetail, error) {
+	args := m.Called(userID, tanggalMulai, tanggalSelesai)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.PengeluaranKantongDetail), args.Error(1)
+}
+
 func TestLaporanUsecase_GetRingkasanLaporan_Success(t *testing.T) {
 	mockLaporanRepo := new(MockLaporanRepository)
 	mockRedisRepo := new(MockRedisRepository)
@@ -187,6 +203,108 @@ func TestLaporanUsecase_GetStatistikTahunan_Success(t *testing.T) {
 	assert.Equal(t, 200, result.Code)
 	assert.Equal(t, expectedData.Tahun, result.Data.Tahun)
 	assert.Equal(t, expectedData.TotalPemasukanTahun, result.Data.TotalPemasukanTahun)
+	mockLaporanRepo.AssertExpectations(t)
+	mockRedisRepo.AssertExpectations(t)
+}
+
+func TestLaporanUsecase_GetStatistikKantongPeriode_Success(t *testing.T) {
+	mockLaporanRepo := new(MockLaporanRepository)
+	mockRedisRepo := new(MockRedisRepository)
+	laporanUsecase := usecase.NewLaporanUsecase(mockLaporanRepo, mockRedisRepo)
+
+	userID := uint(1)
+	tanggalMulai := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	tanggalSelesai := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
+	tanggalMulaiStr := "2024-01-01"
+	tanggalSelesaiStr := "2024-01-31"
+	req := &domain.StatistikKantongPeriodeRequest{
+		TanggalMulai:   &tanggalMulaiStr,
+		TanggalSelesai: &tanggalSelesaiStr,
+	}
+
+	expectedData := &domain.StatistikKantongPeriode{
+		Periode: domain.PeriodeTanggal{
+			TanggalMulai:   "2024-01-01",
+			TanggalSelesai: "2024-01-31",
+		},
+		DataKantong: []domain.DataKantongPeriode{
+			{
+				KantongID:        "1",
+				KantongNama:      "Wallet Utama",
+				TotalPengeluaran: 3500000,
+			},
+		},
+		TotalPengeluaran: 3500000,
+	}
+
+	mockRedisRepo.On("GetJSON", mock.AnythingOfType("string"), mock.Anything).Return(assert.AnError)
+	mockLaporanRepo.On("GetStatistikKantongPeriode", userID, tanggalMulai, tanggalSelesai).Return(expectedData, nil)
+	mockRedisRepo.On("SetJSON", mock.AnythingOfType("string"), mock.Anything, mock.AnythingOfType("time.Duration")).Return(nil)
+
+	result, err := laporanUsecase.GetStatistikKantongPeriode(userID, req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.True(t, result.Success)
+	assert.Equal(t, "Statistik kantong periode berhasil diambil", result.Message)
+	assert.Equal(t, 200, result.Code)
+	assert.Equal(t, expectedData.TotalPengeluaran, result.Data.TotalPengeluaran)
+	assert.Len(t, result.Data.DataKantong, 1)
+	assert.Equal(t, "Wallet Utama", result.Data.DataKantong[0].KantongNama)
+	mockLaporanRepo.AssertExpectations(t)
+	mockRedisRepo.AssertExpectations(t)
+}
+
+func TestLaporanUsecase_GetPengeluaranKantongDetail_Success(t *testing.T) {
+	mockLaporanRepo := new(MockLaporanRepository)
+	mockRedisRepo := new(MockRedisRepository)
+	laporanUsecase := usecase.NewLaporanUsecase(mockLaporanRepo, mockRedisRepo)
+
+	userID := uint(1)
+	tanggalMulai := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	tanggalSelesai := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
+	tanggalMulaiStr := "2024-01-01"
+	tanggalSelesaiStr := "2024-01-31"
+	req := &domain.PengeluaranKantongDetailRequest{
+		TanggalMulai:   &tanggalMulaiStr,
+		TanggalSelesai: &tanggalSelesaiStr,
+	}
+
+	expectedData := &domain.PengeluaranKantongDetail{
+		Periode: domain.PeriodeTanggal{
+			TanggalMulai:   "2024-01-01",
+			TanggalSelesai: "2024-01-31",
+		},
+		DataKantong: []domain.DataKantongDetail{
+			{
+				KantongID:           "1",
+				KantongNama:         "Wallet Utama",
+				TotalPengeluaran:    3500000,
+				PersentaseDariSaldo: 75.5,
+				JumlahTransaksi:     25,
+				RataRataPengeluaran: 140000,
+				SaldoKantong:        2000000,
+			},
+		},
+		TotalPengeluaran:       3500000,
+		TotalSaldoSemuaKantong: 2000000,
+	}
+
+	mockRedisRepo.On("GetJSON", mock.AnythingOfType("string"), mock.Anything).Return(assert.AnError)
+	mockLaporanRepo.On("GetPengeluaranKantongDetail", userID, tanggalMulai, tanggalSelesai).Return(expectedData, nil)
+	mockRedisRepo.On("SetJSON", mock.AnythingOfType("string"), mock.Anything, mock.AnythingOfType("time.Duration")).Return(nil)
+
+	result, err := laporanUsecase.GetPengeluaranKantongDetail(userID, req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.True(t, result.Success)
+	assert.Equal(t, "Detail pengeluaran kantong berhasil diambil", result.Message)
+	assert.Equal(t, 200, result.Code)
+	assert.Equal(t, expectedData.TotalPengeluaran, result.Data.TotalPengeluaran)
+	assert.Equal(t, expectedData.TotalSaldoSemuaKantong, result.Data.TotalSaldoSemuaKantong)
+	assert.Len(t, result.Data.DataKantong, 1)
+	assert.Equal(t, "Wallet Utama", result.Data.DataKantong[0].KantongNama)
 	mockLaporanRepo.AssertExpectations(t)
 	mockRedisRepo.AssertExpectations(t)
 }

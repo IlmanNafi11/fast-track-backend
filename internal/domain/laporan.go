@@ -120,3 +120,58 @@ type TopKantongPengeluaranResponse struct {
 	Data      TopKantongPengeluaran `json:"data"`
 	Timestamp time.Time             `json:"timestamp"`
 }
+
+type StatistikKantongPeriode struct {
+	Periode          PeriodeTanggal       `json:"periode"`
+	DataKantong      []DataKantongPeriode `json:"data_kantong"`
+	TotalPengeluaran float64              `json:"total_pengeluaran"`
+}
+
+type DataKantongPeriode struct {
+	KantongID        string  `json:"kantong_id"`
+	KantongNama      string  `json:"kantong_nama"`
+	TotalPengeluaran float64 `json:"total_pengeluaran"`
+}
+
+type PengeluaranKantongDetail struct {
+	Periode                PeriodeTanggal      `json:"periode"`
+	DataKantong            []DataKantongDetail `json:"data_kantong"`
+	TotalPengeluaran       float64             `json:"total_pengeluaran"`
+	TotalSaldoSemuaKantong float64             `json:"total_saldo_semua_kantong"`
+}
+
+type DataKantongDetail struct {
+	KantongID           string  `json:"kantong_id"`
+	KantongNama         string  `json:"kantong_nama"`
+	TotalPengeluaran    float64 `json:"total_pengeluaran"`
+	PersentaseDariSaldo float64 `json:"persentase_dari_saldo"`
+	JumlahTransaksi     int     `json:"jumlah_transaksi"`
+	RataRataPengeluaran float64 `json:"rata_rata_pengeluaran"`
+	SaldoKantong        float64 `json:"saldo_kantong"`
+}
+
+type StatistikKantongPeriodeRequest struct {
+	TanggalMulai   *string `json:"tanggal_mulai" query:"tanggal_mulai"`
+	TanggalSelesai *string `json:"tanggal_selesai" query:"tanggal_selesai"`
+}
+
+type PengeluaranKantongDetailRequest struct {
+	TanggalMulai   *string `json:"tanggal_mulai" query:"tanggal_mulai"`
+	TanggalSelesai *string `json:"tanggal_selesai" query:"tanggal_selesai"`
+}
+
+type StatistikKantongPeriodeResponse struct {
+	Success   bool                    `json:"success"`
+	Message   string                  `json:"message"`
+	Code      int                     `json:"code"`
+	Data      StatistikKantongPeriode `json:"data"`
+	Timestamp time.Time               `json:"timestamp"`
+}
+
+type PengeluaranKantongDetailResponse struct {
+	Success   bool                     `json:"success"`
+	Message   string                   `json:"message"`
+	Code      int                      `json:"code"`
+	Data      PengeluaranKantongDetail `json:"data"`
+	Timestamp time.Time                `json:"timestamp"`
+}

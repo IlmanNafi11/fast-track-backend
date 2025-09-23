@@ -12,6 +12,8 @@ type LaporanUsecase interface {
 	GetStatistikTahunan(userID uint, req *domain.StatistikTahunanRequest) (*domain.StatistikTahunanResponse, error)
 	GetStatistikKantongBulanan(userID uint, req *domain.StatistikKantongBulananRequest) (*domain.StatistikKantongBulananResponse, error)
 	GetTopKantongPengeluaran(userID uint, req *domain.TopKantongPengeluaranRequest) (*domain.TopKantongPengeluaranResponse, error)
+	GetStatistikKantongPeriode(userID uint, req *domain.StatistikKantongPeriodeRequest) (*domain.StatistikKantongPeriodeResponse, error)
+	GetPengeluaranKantongDetail(userID uint, req *domain.PengeluaranKantongDetailRequest) (*domain.PengeluaranKantongDetailResponse, error)
 }
 
 type laporanUsecase struct {
@@ -188,4 +190,62 @@ func (uc *laporanUsecase) getDefaultMonth(bulan, tahun *int) (int, int) {
 	}
 
 	return month, year
+}
+
+func (uc *laporanUsecase) GetStatistikKantongPeriode(userID uint, req *domain.StatistikKantongPeriodeRequest) (*domain.StatistikKantongPeriodeResponse, error) {
+	cacheKey := fmt.Sprintf("statistik_kantong_periode:%d:%v:%v", userID, req.TanggalMulai, req.TanggalSelesai)
+
+	var response *domain.StatistikKantongPeriodeResponse
+	err := uc.redisRepo.GetJSON(cacheKey, &response)
+	if err == nil && response != nil {
+		return response, nil
+	}
+
+	tanggalMulai, tanggalSelesai := uc.getDefaultDateRange(req.TanggalMulai, req.TanggalSelesai)
+
+	data, err := uc.laporanRepo.GetStatistikKantongPeriode(userID, tanggalMulai, tanggalSelesai)
+	if err != nil {
+		return nil, err
+	}
+
+	response = &domain.StatistikKantongPeriodeResponse{
+		Success:   true,
+		Message:   "Statistik kantong periode berhasil diambil",
+		Code:      200,
+		Data:      *data,
+		Timestamp: time.Now(),
+	}
+
+	uc.redisRepo.SetJSON(cacheKey, response, 15*time.Minute)
+
+	return response, nil
+}
+
+func (uc *laporanUsecase) GetPengeluaranKantongDetail(userID uint, req *domain.PengeluaranKantongDetailRequest) (*domain.PengeluaranKantongDetailResponse, error) {
+	cacheKey := fmt.Sprintf("pengeluaran_kantong_detail:%d:%v:%v", userID, req.TanggalMulai, req.TanggalSelesai)
+
+	var response *domain.PengeluaranKantongDetailResponse
+	err := uc.redisRepo.GetJSON(cacheKey, &response)
+	if err == nil && response != nil {
+		return response, nil
+	}
+
+	tanggalMulai, tanggalSelesai := uc.getDefaultDateRange(req.TanggalMulai, req.TanggalSelesai)
+
+	data, err := uc.laporanRepo.GetPengeluaranKantongDetail(userID, tanggalMulai, tanggalSelesai)
+	if err != nil {
+		return nil, err
+	}
+
+	response = &domain.PengeluaranKantongDetailResponse{
+		Success:   true,
+		Message:   "Detail pengeluaran kantong berhasil diambil",
+		Code:      200,
+		Data:      *data,
+		Timestamp: time.Now(),
+	}
+
+	uc.redisRepo.SetJSON(cacheKey, response, 20*time.Minute)
+
+	return response, nil
 }

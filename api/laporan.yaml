@@ -382,6 +382,155 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /laporan/statistik/kantong-periode:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan statistik pengeluaran per kantong dalam rentang periode tertentu
+      description: Endpoint untuk mengambil data statistik pengeluaran per kantong milik pengguna dalam rentang periode tertentu, dengan detail total pengeluaran per kantong dan nama kantong
+      operationId: getStatistikKantongPeriode
+      parameters:
+        - name: tanggal_mulai
+          in: query
+          description: Filter berdasarkan tanggal mulai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal 1 bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-01"
+        - name: tanggal_selesai
+          in: query
+          description: Filter berdasarkan tanggal selesai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal akhir bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-31"
+      responses:
+        '200':
+          description: Statistik kantong periode berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistikKantongPeriodeResponse'
+              example:
+                success: true
+                message: "Statistik kantong periode berhasil diambil"
+                code: 200
+                data:
+                  periode:
+                    tanggal_mulai: "2024-01-01"
+                    tanggal_selesai: "2024-01-31"
+                  data_kantong:
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Kantong Belanja"
+                      total_pengeluaran: 1500000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                      kantong_nama: "Transport"
+                      total_pengeluaran: 800000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      total_pengeluaran: 600000
+                  total_pengeluaran: 2900000
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /laporan/pengeluaran-kantong-detail:
+    get:
+      tags:
+        - Laporan Management
+      summary: Dapatkan pengeluaran per kantong dengan data detail lengkap
+      description: Endpoint untuk mendapatkan data pengeluaran per kantong dalam rentang periode tertentu dengan detail lengkap termasuk nama kantong, total pengeluaran, persentase dari total saldo kantong, jumlah transaksi, dan rata-rata pengeluaran
+      operationId: getPengeluaranKantongDetail
+      parameters:
+        - name: tanggal_mulai
+          in: query
+          description: Filter berdasarkan tanggal mulai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal 1 bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-01"
+        - name: tanggal_selesai
+          in: query
+          description: Filter berdasarkan tanggal selesai (format YYYY-MM-DD). Jika tidak diisi, menggunakan tanggal akhir bulan saat ini
+          schema:
+            type: string
+            format: date
+          example: "2024-01-31"
+      responses:
+        '200':
+          description: Detail pengeluaran kantong berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PengeluaranKantongDetailResponse'
+              example:
+                success: true
+                message: "Detail pengeluaran kantong berhasil diambil"
+                code: 200
+                data:
+                  periode:
+                    tanggal_mulai: "2024-01-01"
+                    tanggal_selesai: "2024-01-31"
+                  data_kantong:
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440001"
+                      kantong_nama: "Kantong Belanja"
+                      total_pengeluaran: 1500000
+                      persentase_dari_saldo: 15.0
+                      jumlah_transaksi: 25
+                      rata_rata_pengeluaran: 60000
+                      saldo_kantong: 10000000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440002"
+                      kantong_nama: "Transport"
+                      total_pengeluaran: 800000
+                      persentase_dari_saldo: 13.33
+                      jumlah_transaksi: 20
+                      rata_rata_pengeluaran: 40000
+                      saldo_kantong: 6000000
+                    - kantong_id: "550e8400-e29b-41d4-a716-446655440003"
+                      kantong_nama: "Hiburan"
+                      total_pengeluaran: 600000
+                      persentase_dari_saldo: 20.0
+                      jumlah_transaksi: 12
+                      rata_rata_pengeluaran: 50000
+                      saldo_kantong: 3000000
+                  total_pengeluaran: 2900000
+                  total_saldo_semua_kantong: 19000000
+                timestamp: "2024-01-15T12:30:00Z"
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Tidak memiliki akses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Terjadi kesalahan pada server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     BaseResponse:
@@ -663,6 +812,112 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/TopKantongPengeluaran'
+
+    StatistikKantongPeriode:
+      type: object
+      properties:
+        periode:
+          $ref: '#/components/schemas/PeriodeTanggal'
+        data_kantong:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataKantongPeriode'
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran dari semua kantong dalam periode"
+          example: 2900000
+
+    DataKantongPeriode:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Kantong Belanja"
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran kantong dalam periode tersebut"
+          example: 1500000
+
+    PengeluaranKantongDetail:
+      type: object
+      properties:
+        periode:
+          $ref: '#/components/schemas/PeriodeTanggal'
+        data_kantong:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataKantongDetail'
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran dari semua kantong dalam periode"
+          example: 2900000
+        total_saldo_semua_kantong:
+          type: number
+          format: float
+          description: "Total saldo dari semua kantong"
+          example: 19000000
+
+    DataKantongDetail:
+      type: object
+      properties:
+        kantong_id:
+          type: string
+          format: uuid
+          description: "ID kantong"
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        kantong_nama:
+          type: string
+          description: "Nama kantong"
+          example: "Kantong Belanja"
+        total_pengeluaran:
+          type: number
+          format: float
+          description: "Total pengeluaran kantong dalam periode tersebut"
+          example: 1500000
+        persentase_dari_saldo:
+          type: number
+          format: float
+          description: "Persentase pengeluaran dari total saldo kantong"
+          example: 15.0
+        jumlah_transaksi:
+          type: integer
+          description: "Jumlah transaksi pengeluaran dalam kantong"
+          example: 25
+        rata_rata_pengeluaran:
+          type: number
+          format: float
+          description: "Rata-rata pengeluaran per transaksi"
+          example: 60000
+        saldo_kantong:
+          type: number
+          format: float
+          description: "Saldo kantong saat ini"
+          example: 10000000
+
+    StatistikKantongPeriodeResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/StatistikKantongPeriode'
+
+    PengeluaranKantongDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PengeluaranKantongDetail'
 
     ValidationError:
       type: object

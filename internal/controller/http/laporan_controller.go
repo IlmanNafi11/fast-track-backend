@@ -153,3 +153,57 @@ func (ctrl *LaporanController) GetTopKantongPengeluaran(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
+
+func (ctrl *LaporanController) GetStatistikKantongPeriode(c *fiber.Ctx) error {
+	userID, err := helper.GetUserIDFromToken(c)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
+	}
+
+	req := &domain.StatistikKantongPeriodeRequest{}
+
+	if tanggalMulai := c.Query("tanggal_mulai"); tanggalMulai != "" {
+		req.TanggalMulai = &tanggalMulai
+	}
+	if tanggalSelesai := c.Query("tanggal_selesai"); tanggalSelesai != "" {
+		req.TanggalSelesai = &tanggalSelesai
+	}
+
+	if err := helper.ValidateStruct(req); err != nil {
+		return helper.SendValidationErrorResponse(c, err)
+	}
+
+	response, err := ctrl.laporanUsecase.GetStatistikKantongPeriode(userID, req)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
+	userID, err := helper.GetUserIDFromToken(c)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid", nil)
+	}
+
+	req := &domain.PengeluaranKantongDetailRequest{}
+
+	if tanggalMulai := c.Query("tanggal_mulai"); tanggalMulai != "" {
+		req.TanggalMulai = &tanggalMulai
+	}
+	if tanggalSelesai := c.Query("tanggal_selesai"); tanggalSelesai != "" {
+		req.TanggalSelesai = &tanggalSelesai
+	}
+
+	if err := helper.ValidateStruct(req); err != nil {
+		return helper.SendValidationErrorResponse(c, err)
+	}
+
+	response, err := ctrl.laporanUsecase.GetPengeluaranKantongDetail(userID, req)
+	if err != nil {
+		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}

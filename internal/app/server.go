@@ -99,6 +99,8 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	laporan.Get("/statistik/tahunan", laporanController.GetStatistikTahunan)
 	laporan.Get("/statistik/kantong-bulanan", laporanController.GetStatistikKantongBulanan)
 	laporan.Get("/statistik/top-kantong", laporanController.GetTopKantongPengeluaran)
+	laporan.Get("/statistik/kantong-periode", laporanController.GetStatistikKantongPeriode)
+	laporan.Get("/pengeluaran-kantong-detail", laporanController.GetPengeluaranKantongDetail)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

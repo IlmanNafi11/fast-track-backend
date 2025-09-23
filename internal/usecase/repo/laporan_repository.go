@@ -297,3 +297,121 @@ func (r *laporanRepository) GetTopKantongPengeluaran(userID uint, bulan, tahun, 
 		TotalTransaksiSemua:   totalTransaksiSemua,
 	}, nil
 }
+
+func (r *laporanRepository) GetStatistikKantongPeriode(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.StatistikKantongPeriode, error) {
+	type queryResult struct {
+		KantongID        string  `json:"kantong_id"`
+		KantongNama      string  `json:"kantong_nama"`
+		TotalPengeluaran float64 `json:"total_pengeluaran"`
+	}
+
+	var results []queryResult
+	query := `
+		SELECT 
+			k.id as kantong_id,
+			k.nama as kantong_nama,
+			COALESCE(SUM(t.jumlah), 0) as total_pengeluaran
+		FROM kantongs k
+		LEFT JOIN transaksis t ON k.id = t.kantong_id 
+			AND t.jenis = 'Pengeluaran' 
+			AND t.tanggal BETWEEN ? AND ?
+		WHERE k.user_id = ?
+		GROUP BY k.id, k.nama
+		ORDER BY total_pengeluaran DESC
+	`
+
+	err := r.db.Raw(query, tanggalMulai, tanggalSelesai, userID).Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var totalPengeluaran float64
+	var dataKantong []domain.DataKantongPeriode
+
+	for _, result := range results {
+		totalPengeluaran += result.TotalPengeluaran
+		dataKantong = append(dataKantong, domain.DataKantongPeriode{
+			KantongID:        result.KantongID,
+			KantongNama:      result.KantongNama,
+			TotalPengeluaran: result.TotalPengeluaran,
+		})
+	}
+
+	return &domain.StatistikKantongPeriode{
+		Periode: domain.PeriodeTanggal{
+			TanggalMulai:   tanggalMulai.Format("2006-01-02"),
+			TanggalSelesai: tanggalSelesai.Format("2006-01-02"),
+		},
+		DataKantong:      dataKantong,
+		TotalPengeluaran: totalPengeluaran,
+	}, nil
+}
+
+func (r *laporanRepository) GetPengeluaranKantongDetail(userID uint, tanggalMulai, tanggalSelesai time.Time) (*domain.PengeluaranKantongDetail, error) {
+	type queryResult struct {
+		KantongID        string  `json:"kantong_id"`
+		KantongNama      string  `json:"kantong_nama"`
+		TotalPengeluaran float64 `json:"total_pengeluaran"`
+		JumlahTransaksi  int     `json:"jumlah_transaksi"`
+		SaldoKantong     float64 `json:"saldo_kantong"`
+	}
+
+	var results []queryResult
+	query := `
+		SELECT 
+			k.id as kantong_id,
+			k.nama as kantong_nama,
+			COALESCE(SUM(CASE WHEN t.jenis = 'Pengeluaran' THEN t.jumlah ELSE 0 END), 0) as total_pengeluaran,
+			COUNT(CASE WHEN t.jenis = 'Pengeluaran' THEN 1 END) as jumlah_transaksi,
+			k.saldo as saldo_kantong
+		FROM kantongs k
+		LEFT JOIN transaksis t ON k.id = t.kantong_id 
+			AND t.tanggal BETWEEN ? AND ?
+		WHERE k.user_id = ?
+		GROUP BY k.id, k.nama, k.saldo
+		ORDER BY total_pengeluaran DESC
+	`
+
+	err := r.db.Raw(query, tanggalMulai, tanggalSelesai, userID).Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var totalPengeluaran, totalSaldoSemuaKantong float64
+	var dataKantong []domain.DataKantongDetail
+
+	for _, result := range results {
+		totalPengeluaran += result.TotalPengeluaran
+		totalSaldoSemuaKantong += result.SaldoKantong
+
+		persentaseDariSaldo := float64(0)
+		if result.SaldoKantong > 0 {
+			persentaseDariSaldo = (result.TotalPengeluaran / result.SaldoKantong) * 100
+		}
+
+		rataRataPengeluaran := float64(0)
+		if result.JumlahTransaksi > 0 {
+			rataRataPengeluaran = result.TotalPengeluaran / float64(result.JumlahTransaksi)
+		}
+
+		dataKantong = append(dataKantong, domain.DataKantongDetail{
+			KantongID:           result.KantongID,
+			KantongNama:         result.KantongNama,
+			TotalPengeluaran:    result.TotalPengeluaran,
+			PersentaseDariSaldo: persentaseDariSaldo,
+			JumlahTransaksi:     result.JumlahTransaksi,
+			RataRataPengeluaran: rataRataPengeluaran,
+			SaldoKantong:        result.SaldoKantong,
+		})
+	}
+
+	return &domain.PengeluaranKantongDetail{
+		Periode: domain.PeriodeTanggal{
+			TanggalMulai:   tanggalMulai.Format("2006-01-02"),
+			TanggalSelesai: tanggalSelesai.Format("2006-01-02"),
+		},
+		DataKantong:            dataKantong,
+		TotalPengeluaran:       totalPengeluaran,
+		TotalSaldoSemuaKantong: totalSaldoSemuaKantong,
+	}, nil
+}
