@@ -9,7 +9,6 @@ import (
 )
 
 func TestLaporanRepository_TrenBulananDataStructure(t *testing.T) {
-	// Test data structure validation
 	expectedData := []domain.DataBulanan{
 		{
 			Bulan:            1,
@@ -32,7 +31,6 @@ func TestLaporanRepository_TrenBulananDataStructure(t *testing.T) {
 		TotalPengeluaranTahun: 45600000.0,
 	}
 
-	// Assertions
 	assert.Equal(t, 2024, trenBulanan.Tahun)
 	assert.Len(t, trenBulanan.DataTren, 2)
 	assert.Equal(t, "Januari", trenBulanan.DataTren[0].NamaBulan)
@@ -76,7 +74,6 @@ func TestLaporanRepository_PerbandinganKantongDataStructure(t *testing.T) {
 		TotalBulanLalu:  1900000.0,
 	}
 
-	// Assertions
 	assert.Equal(t, 12, perbandingan.BulanIni.Bulan)
 	assert.Equal(t, 2024, perbandingan.BulanIni.Tahun)
 	assert.Equal(t, "Desember", perbandingan.BulanIni.NamaBulan)
@@ -131,7 +128,6 @@ func TestLaporanRepository_DetailPerbandinganKantongDataStructure(t *testing.T) 
 		TrendTotal:      "naik",
 	}
 
-	// Assertions
 	assert.Equal(t, 12, detail.BulanIni.Bulan)
 	assert.Equal(t, 2024, detail.BulanIni.Tahun)
 	assert.Equal(t, "Desember", detail.BulanIni.NamaBulan)
@@ -145,23 +141,17 @@ func TestLaporanRepository_DetailPerbandinganKantongDataStructure(t *testing.T) 
 	assert.Equal(t, "naik", detail.TrendTotal)
 }
 
-// Test untuk validasi parameter input
 func TestLaporanRepository_ValidateInputParameters(t *testing.T) {
-	// Test untuk validasi tahun
 	assert.True(t, 2024 >= 2020 && 2024 <= 2030, "Tahun harus dalam rentang 2020-2030")
 
-	// Test untuk validasi bulan
 	assert.True(t, 12 >= 1 && 12 <= 12, "Bulan harus dalam rentang 1-12")
 
-	// Test untuk validasi user_id format
 	userID := "550e8400-e29b-41d4-a716-446655440000"
 	assert.NotEmpty(t, userID, "User ID tidak boleh kosong")
 	assert.Equal(t, 36, len(userID), "User ID harus format UUID")
 }
 
-// Test untuk response format
 func TestLaporanRepository_ResponseFormat(t *testing.T) {
-	// Test TrenBulananResponse format
 	response := domain.TrenBulananResponse{
 		Success:   true,
 		Message:   "Tren bulanan berhasil diambil",
@@ -175,7 +165,6 @@ func TestLaporanRepository_ResponseFormat(t *testing.T) {
 	assert.Equal(t, 200, response.Code)
 	assert.NotZero(t, response.Timestamp)
 
-	// Test PerbandinganKantongResponse format
 	response2 := domain.PerbandinganKantongResponse{
 		Success:   true,
 		Message:   "Perbandingan kantong berhasil diambil",
@@ -189,7 +178,6 @@ func TestLaporanRepository_ResponseFormat(t *testing.T) {
 	assert.Equal(t, 200, response2.Code)
 	assert.NotZero(t, response2.Timestamp)
 
-	// Test DetailPerbandinganKantongResponse format
 	response3 := domain.DetailPerbandinganKantongResponse{
 		Success:   true,
 		Message:   "Detail perbandingan kantong berhasil diambil",
@@ -205,7 +193,6 @@ func TestLaporanRepository_ResponseFormat(t *testing.T) {
 }
 
 func TestLaporanRepository_DateCalculation(t *testing.T) {
-	// Test untuk perhitungan bulan sebelumnya
 	currentMonth := 12
 	currentYear := 2024
 
@@ -220,7 +207,6 @@ func TestLaporanRepository_DateCalculation(t *testing.T) {
 	assert.Equal(t, 11, prevMonth)
 	assert.Equal(t, 2024, prevYear)
 
-	// Test untuk bulan Januari
 	currentMonth = 1
 	prevMonth = currentMonth - 1
 	prevYear = currentYear
@@ -235,7 +221,6 @@ func TestLaporanRepository_DateCalculation(t *testing.T) {
 }
 
 func TestLaporanRepository_PercentageCalculation(t *testing.T) {
-	// Test perhitungan persentase perubahan
 	bulanIni := 1500000.0
 	bulanLalu := 1200000.0
 
@@ -244,7 +229,6 @@ func TestLaporanRepository_PercentageCalculation(t *testing.T) {
 
 	assert.Equal(t, expectedPersentase, persentase)
 
-	// Test untuk trend
 	var trend string
 	if bulanIni > bulanLalu {
 		trend = "naik"

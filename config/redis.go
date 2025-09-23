@@ -2,11 +2,12 @@ package config
 
 import (
 	"context"
+	"fiber-boiler-plate/internal/helper"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
 func ConnectRedis(cfg *Config) *redis.Client {
@@ -21,22 +22,26 @@ func ConnectRedis(cfg *Config) *redis.Client {
 		WriteTimeout: 3 * time.Second,
 	})
 
-	// Test koneksi Redis
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		log.Printf("⚠️  Peringatan: Gagal menghubungkan ke Redis: %v", err)
-		log.Println("⚠️  Aplikasi akan berjalan tanpa Redis, beberapa fitur mungkin terbatas")
+		helper.Warn("Peringatan: Gagal menghubungkan ke Redis", logrus.Fields{
+			"error": err.Error(),
+		})
+		helper.Warn("Aplikasi akan berjalan tanpa Redis, beberapa fitur mungkin terbatas")
 		return nil
 	}
 
-	log.Printf("✅ Berhasil terhubung ke Redis: %s", pong)
+	helper.Info("Berhasil terhubung ke Redis", logrus.Fields{
+		"response": pong,
+		"host":     cfg.Redis.Host,
+		"port":     cfg.Redis.Port,
+	})
 	return rdb
 }
 
-// PingRedis melakukan ping test ke Redis untuk health check
 func PingRedis(rdb *redis.Client) error {
 	if rdb == nil {
 		return fmt.Errorf("koneksi Redis tidak tersedia")
@@ -49,7 +54,6 @@ func PingRedis(rdb *redis.Client) error {
 	return err
 }
 
-// GetRedisInfo mendapatkan informasi Redis untuk monitoring
 func GetRedisInfo(rdb *redis.Client) (map[string]string, error) {
 	if rdb == nil {
 		return nil, fmt.Errorf("koneksi Redis tidak tersedia")
@@ -66,7 +70,6 @@ func GetRedisInfo(rdb *redis.Client) (map[string]string, error) {
 	result := make(map[string]string)
 	result["info"] = info
 
-	// Dapatkan versi Redis
 	if serverInfo, err := rdb.Info(ctx, "server").Result(); err == nil {
 		result["server"] = serverInfo
 	}

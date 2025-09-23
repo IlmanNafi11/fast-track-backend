@@ -1,9 +1,10 @@
 package config
 
 import (
+	"fiber-boiler-plate/internal/helper"
 	"fmt"
-	"log"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -32,9 +33,15 @@ func ConnectDatabase(cfg *Config) *gorm.DB {
 	})
 
 	if err != nil {
-		log.Fatal("Gagal menghubungkan ke database:", err)
+		helper.Fatal("Gagal menghubungkan ke database", err, logrus.Fields{
+			"dsn": dsn,
+		})
 	}
 
-	log.Println("Berhasil terhubung ke database PostgreSQL")
+	helper.Info("Berhasil terhubung ke database PostgreSQL", logrus.Fields{
+		"host": cfg.Database.Host,
+		"port": cfg.Database.Port,
+		"name": cfg.Database.Name,
+	})
 	return db
 }

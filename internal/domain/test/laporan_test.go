@@ -274,7 +274,6 @@ func TestPengeluaranKantongDetailResponse_Struct(t *testing.T) {
 	assert.NotZero(t, response.Timestamp)
 }
 
-// Tests for new structs added for new endpoints
 
 func TestTrenBulananRequest_Struct(t *testing.T) {
 	tahun := 2024
@@ -432,7 +431,6 @@ func TestDetailPerbandinganKantong_Struct(t *testing.T) {
 	assert.Equal(t, "naik", detail.TrendTotal)
 }
 
-// Response tests for new structs
 
 func TestTrenBulananResponse_Struct(t *testing.T) {
 	tren := domain.TrenBulanan{

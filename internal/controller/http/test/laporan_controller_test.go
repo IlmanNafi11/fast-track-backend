@@ -65,7 +65,6 @@ func (m *MockLaporanUsecase) GetPengeluaranKantongDetail(userID uint, req *domai
 	return args.Get(0).(*domain.PengeluaranKantongDetailResponse), args.Error(1)
 }
 
-// New methods for testing
 func (m *MockLaporanUsecase) GetTrenBulanan(userID uint, req *domain.TrenBulananRequest) (*domain.TrenBulananResponse, error) {
 	args := m.Called(userID, req)
 	if args.Get(0) == nil {
@@ -95,7 +94,6 @@ func setupLaporanController() (*fiber.App, *MockLaporanUsecase) {
 	mockUsecase := new(MockLaporanUsecase)
 	controller := http.NewLaporanController(mockUsecase)
 
-	// Setup middleware untuk bypass authentication
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("user_id", uint(1))
 		return c.Next()

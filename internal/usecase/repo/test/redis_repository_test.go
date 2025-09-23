@@ -10,7 +10,6 @@ import (
 )
 
 func TestRedisRepository_SetAndGet(t *testing.T) {
-	// Test when Redis client is nil
 	redisRepo := repo.NewRedisRepository(nil)
 
 	err := redisRepo.Set("test-key", "test-value", time.Minute)

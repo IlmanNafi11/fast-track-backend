@@ -333,7 +333,6 @@ func TestLaporanUsecase_GetPengeluaranKantongDetail_Success(t *testing.T) {
 	mockRedisRepo.AssertExpectations(t)
 }
 
-// Tests for new methods
 
 func TestLaporanUsecase_GetTrenBulanan_Success(t *testing.T) {
 	mockLaporanRepo := new(MockLaporanRepository)
@@ -365,13 +364,10 @@ func TestLaporanUsecase_GetTrenBulanan_Success(t *testing.T) {
 
 	cacheKey := "tren_bulanan:1:2024"
 
-	// Mock cache miss
 	mockRedisRepo.On("GetJSON", cacheKey, mock.AnythingOfType("**domain.TrenBulananResponse")).Return(assert.AnError)
 
-	// Mock repository call
 	mockLaporanRepo.On("GetTrenBulanan", userID, tahun).Return(expectedData, nil)
 
-	// Mock cache set
 	mockRedisRepo.On("SetJSON", cacheKey, mock.AnythingOfType("*domain.TrenBulananResponse"), 10*time.Minute).Return(nil)
 
 	req := &domain.TrenBulananRequest{
@@ -424,10 +420,8 @@ func TestLaporanUsecase_GetPerbandinganKantong_Success(t *testing.T) {
 		TotalBulanLalu: 1900000,
 	}
 
-	// Mock repository call - values will be calculated in GetPerbandinganKantong method
 	mockLaporanRepo.On("GetPerbandinganKantong", userID, mock.AnythingOfType("int"), mock.AnythingOfType("int"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(expectedData, nil)
 
-	// Mock cache miss and set
 	mockRedisRepo.On("GetJSON", mock.AnythingOfType("string"), mock.AnythingOfType("**domain.PerbandinganKantongResponse")).Return(assert.AnError)
 	mockRedisRepo.On("SetJSON", mock.AnythingOfType("string"), mock.AnythingOfType("*domain.PerbandinganKantongResponse"), 15*time.Minute).Return(nil)
 
@@ -484,10 +478,8 @@ func TestLaporanUsecase_GetDetailPerbandinganKantong_Success(t *testing.T) {
 		TrendTotal:      "naik",
 	}
 
-	// Mock repository call - values will be calculated in GetDetailPerbandinganKantong method
 	mockLaporanRepo.On("GetDetailPerbandinganKantong", userID, mock.AnythingOfType("int"), mock.AnythingOfType("int"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(expectedData, nil)
 
-	// Mock cache miss and set
 	mockRedisRepo.On("GetJSON", mock.AnythingOfType("string"), mock.AnythingOfType("**domain.DetailPerbandinganKantongResponse")).Return(assert.AnError)
 	mockRedisRepo.On("SetJSON", mock.AnythingOfType("string"), mock.AnythingOfType("*domain.DetailPerbandinganKantongResponse"), 18*time.Minute).Return(nil)
 

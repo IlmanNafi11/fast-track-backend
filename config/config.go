@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
 
@@ -60,9 +59,7 @@ type RedisConfig struct {
 }
 
 func LoadConfig() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Tidak dapat memuat file .env, menggunakan environment variables")
-	}
+	godotenv.Load()
 
 	viper.AutomaticEnv()
 

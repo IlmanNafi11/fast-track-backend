@@ -55,7 +55,6 @@ func (m *MockKantongUsecase) TransferKantong(req *domain.TransferKantongRequest,
 }
 
 func (m *MockKantongUsecase) SetAnggaranUsecase(anggaranUsecase usecase.AnggaranUsecase) {
-	// Mock method - tidak perlu implementasi
 }
 
 func setupKantongController() (*fiber.App, *MockKantongUsecase) {

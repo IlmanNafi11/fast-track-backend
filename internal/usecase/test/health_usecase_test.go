@@ -79,7 +79,6 @@ func TestHealthUsecase_GetComprehensiveHealth_Success(t *testing.T) {
 	assert.NotEmpty(t, result.App.Uptime)
 	assert.Equal(t, domain.HealthStatusUnhealthy, result.Status)
 
-	// Test Redis status with nil client
 	assert.NotNil(t, result.Redis)
 	assert.Equal(t, domain.ServiceStatusDisconnected, result.Redis.Status)
 	assert.Equal(t, "Koneksi Redis tidak tersedia", result.Redis.Error)
@@ -111,7 +110,6 @@ func TestHealthUsecase_GetSystemMetrics_Success(t *testing.T) {
 	assert.Greater(t, result.Http.TotalRequests, int64(0))
 	assert.Equal(t, domain.ServiceStatusError, result.Database.Status)
 
-	// Test Redis metrics with nil client
 	assert.NotNil(t, result.Redis)
 	assert.Equal(t, domain.ServiceStatusDisconnected, result.Redis.Status)
 }
@@ -136,7 +134,6 @@ func TestHealthUsecase_GetApplicationStatus_Success(t *testing.T) {
 	assert.Equal(t, "PostgreSQL", result.Services.Database.Name)
 	assert.Equal(t, domain.ServiceStatusUnhealthy, result.Services.Database.Status)
 
-	// Test Redis service status with nil client
 	assert.Equal(t, "Redis", result.Services.Redis.Name)
 	assert.Equal(t, domain.ServiceStatusUnhealthy, result.Services.Redis.Status)
 

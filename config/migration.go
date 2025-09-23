@@ -2,13 +2,13 @@ package config
 
 import (
 	"fiber-boiler-plate/internal/domain"
-	"log"
+	"fiber-boiler-plate/internal/helper"
 
 	"gorm.io/gorm"
 )
 
 func RunMigration(db *gorm.DB) {
-	log.Println("Menjalankan database migration...")
+	helper.Info("Menjalankan database migration...")
 
 	if err := db.AutoMigrate(
 		&domain.User{},
@@ -19,8 +19,8 @@ func RunMigration(db *gorm.DB) {
 		&domain.Role{},
 		&domain.RolePermission{},
 	); err != nil {
-		log.Fatal("Gagal melakukan auto migrate:", err)
+		helper.Fatal("Gagal melakukan auto migrate", err)
 	}
 
-	log.Println("Database migration selesai")
+	helper.Info("Database migration selesai")
 }

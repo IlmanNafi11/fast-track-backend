@@ -158,7 +158,6 @@ func (uc *healthUsecase) getRedisStatus() domain.RedisStatus {
 	}
 	pingTime := time.Since(start)
 
-	// Ambil info Redis untuk monitoring
 	info, err := uc.rdb.Info(ctx, "server", "memory", "stats").Result()
 	redisStatus := domain.RedisStatus{
 		Status:   domain.ServiceStatusConnected,
@@ -167,7 +166,6 @@ func (uc *healthUsecase) getRedisStatus() domain.RedisStatus {
 	}
 
 	if err == nil && pong == "PONG" {
-		// Parse informasi dari Redis INFO command
 		redisStatus.Version = uc.parseRedisVersion(info)
 		redisStatus.UsedMemory = uc.parseRedisMemoryUsage(info)
 		redisStatus.ConnectedClients = uc.parseRedisConnectedClients(info)
@@ -318,33 +316,26 @@ func (uc *healthUsecase) formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%ds", seconds)
 }
 
-// Redis parsing helper methods
 func (uc *healthUsecase) parseRedisVersion(info string) string {
-	// Default value jika parsing gagal
 	return "Unknown"
 }
 
 func (uc *healthUsecase) parseRedisMemoryUsage(info string) string {
-	// Default value jika parsing gagal
 	return "Unknown"
 }
 
 func (uc *healthUsecase) parseRedisConnectedClients(info string) int {
-	// Default value jika parsing gagal
 	return 0
 }
 
 func (uc *healthUsecase) parseRedisKeyspaceHits(info string) int64 {
-	// Default value jika parsing gagal
 	return 0
 }
 
 func (uc *healthUsecase) parseRedisKeyspaceMisses(info string) int64 {
-	// Default value jika parsing gagal
 	return 0
 }
 
 func (uc *healthUsecase) parseRedisTotalCommands(info string) int64 {
-	// Default value jika parsing gagal
 	return 0
 }

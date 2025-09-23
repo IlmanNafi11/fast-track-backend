@@ -3,37 +3,52 @@ package main
 import (
 	"fiber-boiler-plate/config"
 	"fiber-boiler-plate/internal/app"
-	"log"
+	"fiber-boiler-plate/internal/helper"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	cfg := config.LoadConfig()
 
+	helper.InitLogger(cfg.App.Env)
+
 	db := config.ConnectDatabase(cfg)
 	rdb := config.ConnectRedis(cfg)
 
 	if cfg.Database.MigrateOnStart && cfg.Database.AutoMigrate {
-		log.Printf("🔄 Menjalankan auto migration untuk environment: %s", cfg.App.Env)
+		helper.Info("Menjalankan auto migration untuk environment", logrus.Fields{
+			"environment": cfg.App.Env,
+		})
 		config.RunMigration(db)
 	} else {
-		log.Println("⏭️  Auto migration dinonaktifkan melalui konfigurasi")
+		helper.Info("Auto migration dinonaktifkan melalui konfigurasi")
 	}
 
 	if cfg.Database.RunSeeder {
 		if cfg.App.Env == "production" {
-			log.Println("🚨 PERINGATAN: Seeder tidak direkomendasikan untuk production environment!")
-			log.Println("🛡️  Melewati eksekusi seeder untuk keamanan production")
-			log.Println("ℹ️  Untuk menjalankan seeder di production, ubah APP_ENV ke nilai lain")
+			helper.Warn("PERINGATAN: Seeder tidak direkomendasikan untuk production environment!")
+			helper.Warn("Melewati eksekusi seeder untuk keamanan production")
+			helper.Info("Untuk menjalankan seeder di production, ubah APP_ENV ke nilai lain")
 		} else {
-			log.Printf("🌱 Menjalankan seeder untuk environment: %s", cfg.App.Env)
+			helper.Info("Menjalankan seeder untuk environment", logrus.Fields{
+				"environment": cfg.App.Env,
+			})
 			config.RunSeeder(db, cfg)
 		}
 	} else {
-		log.Println("⏭️  Seeder dinonaktifkan melalui konfigurasi DB_RUN_SEEDER=false")
+		helper.Info("Seeder dinonaktifkan melalui konfigurasi DB_RUN_SEEDER=false")
 	}
 
 	server := app.NewServer(cfg, db, rdb)
 
-	log.Printf("Server berjalan di port %s", cfg.App.Port)
-	log.Fatal(server.Listen(":" + cfg.App.Port))
+	helper.Info("Server berjalan di port", logrus.Fields{
+		"port": cfg.App.Port,
+	})
+
+	if err := server.Listen(":" + cfg.App.Port); err != nil {
+		helper.Fatal("Gagal menjalankan server", err, logrus.Fields{
+			"port": cfg.App.Port,
+		})
+	}
 }

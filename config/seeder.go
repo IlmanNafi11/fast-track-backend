@@ -2,22 +2,23 @@ package config
 
 import (
 	"fiber-boiler-plate/internal/domain"
-	"log"
+	"fiber-boiler-plate/internal/helper"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func RunSeeder(db *gorm.DB, cfg *Config) {
-	log.Println("Menjalankan database seeder...")
+	helper.Info("Menjalankan database seeder...")
 
 	if cfg.Database.SeedUsers {
 		seedUsers(db)
 	} else {
-		log.Println("Seeder users dinonaktifkan melalui konfigurasi")
+		helper.Info("Seeder users dinonaktifkan melalui konfigurasi")
 	}
 
-	log.Println("Database seeder selesai")
+	helper.Info("Database seeder selesai")
 }
 
 func seedUsers(db *gorm.DB) {
@@ -25,13 +26,13 @@ func seedUsers(db *gorm.DB) {
 	db.Model(&domain.User{}).Where("email = ?", "user@example.com").Count(&count)
 
 	if count > 0 {
-		log.Println("User seed sudah ada, melewati seeding user")
+		helper.Info("User seed sudah ada, melewati seeding user")
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("user1234"), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatal("Gagal hash password:", err)
+		helper.Fatal("Gagal hash password", err)
 	}
 
 	user := domain.User{
@@ -42,8 +43,12 @@ func seedUsers(db *gorm.DB) {
 	}
 
 	if err := db.Create(&user).Error; err != nil {
-		log.Fatal("Gagal membuat user seed:", err)
+		helper.Fatal("Gagal membuat user seed", err, logrus.Fields{
+			"email": user.Email,
+		})
 	}
 
-	log.Println("User seed berhasil dibuat dengan email: user@example.com")
+	helper.Info("User seed berhasil dibuat", logrus.Fields{
+		"email": user.Email,
+	})
 }
