@@ -213,7 +213,6 @@ func (r *subscriptionPlanRepository) clearRelatedCache(planID string) {
 		patterns := []string{
 			"subscription_plan:list:*",
 			fmt.Sprintf("subscription_plan:id:%s", planID),
-			fmt.Sprintf("subscription_plan:kode:*"),
 			fmt.Sprintf("subscription_plan:active_users:%s", planID),
 		}
 
