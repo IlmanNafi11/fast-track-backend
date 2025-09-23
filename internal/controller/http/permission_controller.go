@@ -51,10 +51,7 @@ func (ctrl *PermissionController) GetPermissionList(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return helper.SendSuccessResponse(c, fiber.StatusOK, "Daftar permission berhasil diambil", fiber.Map{
-		"data": permissions,
-		"meta": meta,
-	})
+	return helper.SendPaginatedResponse(c, fiber.StatusOK, "Daftar permission berhasil diambil", permissions, *meta)
 }
 
 func (ctrl *PermissionController) GetPermissionByID(c *fiber.Ctx) error {
