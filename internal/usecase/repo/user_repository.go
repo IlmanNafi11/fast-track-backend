@@ -39,3 +39,7 @@ func (r *userRepository) Create(user *domain.User) error {
 func (r *userRepository) UpdatePassword(email, hashedPassword string) error {
 	return r.db.Model(&domain.User{}).Where("email = ?", email).Update("password", hashedPassword).Error
 }
+
+func (r *userRepository) Update(user *domain.User) error {
+	return r.db.Save(user).Error
+}

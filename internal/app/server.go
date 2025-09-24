@@ -47,6 +47,9 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
 
+	profilUsecase := usecase.NewProfilUsecase(userRepo, redisRepo)
+	profilController := http.NewProfilController(profilUsecase)
+
 	kantongUsecase := usecase.NewKantongUsecase(kantongRepo, userRepo)
 	kantongController := http.NewKantongController(kantongUsecase)
 
@@ -91,6 +94,10 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	protected := auth.Group("/", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	protected.Post("logout", authController.Logout)
+
+	profil := api.Group("/profil", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	profil.Get("/me", profilController.GetProfil)
+	profil.Put("/me", profilController.UpdateProfil)
 
 	kantong := api.Group("/kantong", helper.JWTAuthMiddleware(cfg.JWT.Secret))
 	kantong.Get("/", kantongController.GetKantongList)

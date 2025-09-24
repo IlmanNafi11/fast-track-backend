@@ -10,6 +10,7 @@ type UserRepository interface {
 	GetByID(id uint) (*domain.User, error)
 	Create(user *domain.User) error
 	UpdatePassword(email, hashedPassword string) error
+	Update(user *domain.User) error
 }
 
 type RefreshTokenRepository interface {

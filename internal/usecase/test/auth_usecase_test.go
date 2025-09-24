@@ -43,6 +43,11 @@ func (m *MockUserRepository) UpdatePassword(email, hashedPassword string) error 
 	return args.Error(0)
 }
 
+func (m *MockUserRepository) Update(user *domain.User) error {
+	args := m.Called(user)
+	return args.Error(0)
+}
+
 type MockRefreshTokenRepository struct {
 	mock.Mock
 }
