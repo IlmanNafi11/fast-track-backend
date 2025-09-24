@@ -42,6 +42,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	permissionRepo := repo.NewPermissionRepository(db, redisRepo)
 	roleRepo := repo.NewRoleRepository(db, redisRepo)
 	userSubscriptionRepo := repo.NewUserSubscriptionRepository(db, redisRepo)
+	invoiceRepo := repo.NewInvoiceRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -69,6 +70,9 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	userSubscriptionUsecase := usecase.NewUserSubscriptionUsecase(userSubscriptionRepo, userRepo, subscriptionPlanRepo)
 	userSubscriptionController := http.NewUserSubscriptionController(userSubscriptionUsecase)
+
+	invoiceUsecase := usecase.NewInvoiceUsecase(invoiceRepo)
+	invoiceController := http.NewInvoiceController(invoiceUsecase)
 
 	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
 	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
@@ -150,6 +154,12 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	userSubscription.Get("/:id", userSubscriptionController.GetByID)
 	userSubscription.Patch("/:id", userSubscriptionController.UpdateStatus)
 	userSubscription.Patch("/:id/payment-method", userSubscriptionController.UpdatePaymentMethod)
+
+	invoice := api.Group("/invoice", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	invoice.Get("/", invoiceController.GetAll)
+	invoice.Get("/statistics", invoiceController.GetStatistics)
+	invoice.Get("/:invoice_id", invoiceController.GetByID)
+	invoice.Patch("/:invoice_id", invoiceController.UpdateStatus)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)
