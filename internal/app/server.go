@@ -41,6 +41,7 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	subscriptionPlanRepo := repo.NewSubscriptionPlanRepository(db, redisRepo)
 	permissionRepo := repo.NewPermissionRepository(db, redisRepo)
 	roleRepo := repo.NewRoleRepository(db, redisRepo)
+	userSubscriptionRepo := repo.NewUserSubscriptionRepository(db, redisRepo)
 
 	authUsecase := usecase.NewAuthUsecase(userRepo, refreshTokenRepo, resetTokenRepo, cfg)
 	authController := http.NewAuthController(authUsecase)
@@ -65,6 +66,9 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 
 	roleUsecase := usecase.NewRoleUsecase(roleRepo, permissionRepo)
 	roleController := http.NewRoleController(roleUsecase)
+
+	userSubscriptionUsecase := usecase.NewUserSubscriptionUsecase(userSubscriptionRepo, userRepo, subscriptionPlanRepo)
+	userSubscriptionController := http.NewUserSubscriptionController(userSubscriptionUsecase)
 
 	kantongUsecase.SetAnggaranUsecase(anggaranUsecase)
 	transaksiUsecase.SetAnggaranUsecase(anggaranUsecase)
@@ -139,6 +143,13 @@ func NewServer(cfg *config.Config, db *gorm.DB, rdb *redis.Client) *fiber.App {
 	role.Put("/:id", roleController.UpdateRole)
 	role.Delete("/:id", roleController.DeleteRole)
 	role.Get("/:id/permissions", roleController.GetRolePermissions)
+
+	userSubscription := api.Group("/user-subscriptions", helper.JWTAuthMiddleware(cfg.JWT.Secret))
+	userSubscription.Get("/", userSubscriptionController.GetAll)
+	userSubscription.Get("/statistics", userSubscriptionController.GetStatistics)
+	userSubscription.Get("/:id", userSubscriptionController.GetByID)
+	userSubscription.Patch("/:id", userSubscriptionController.UpdateStatus)
+	userSubscription.Patch("/:id/payment-method", userSubscriptionController.UpdatePaymentMethod)
 
 	monitoring := api.Group("/monitoring")
 	monitoring.Get("/health", healthController.ComprehensiveHealthCheck)

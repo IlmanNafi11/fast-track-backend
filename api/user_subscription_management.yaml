@@ -1,0 +1,927 @@
+openapi: 3.0.3
+info:
+  title: Fiber Boilerplate API - User Subscription Management
+  description: API dokumentasi untuk sistem manajemen subscription pengguna pada aplikasi Fast Track
+  version: 1.0.0
+  contact:
+    name: Developer Team
+    email: developer@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+
+paths:
+  /user-subscriptions:
+    get:
+      tags:
+        - User Subscription Management
+      summary: Dapatkan daftar subscription pengguna
+      description: Endpoint untuk mendapatkan daftar subscription pengguna dengan fitur pencarian berdasarkan nama dan email pengguna
+      operationId: getUserSubscriptionList
+      parameters:
+        - name: search
+          in: query
+          description: Pencarian berdasarkan nama atau email pengguna
+          schema:
+            type: string
+          example: "john"
+        - name: status
+          in: query
+          description: Filter berdasarkan status subscription
+          schema:
+            type: string
+            enum: [active, paused, trialing]
+          example: "active"
+        - name: payment_method
+          in: query
+          description: Filter berdasarkan metode pembayaran
+          schema:
+            type: string
+          example: "Bank Transfer"
+        - name: sort_by
+          in: query
+          description: Field untuk pengurutan
+          schema:
+            type: string
+            enum: [nama, email, status, created_at]
+            default: nama
+        - name: sort_direction
+          in: query
+          description: Arah pengurutan
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: page
+          in: query
+          description: Nomor halaman
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Jumlah item per halaman
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Daftar subscription pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionListResponse'
+              example:
+                success: true
+                message: "Daftar subscription pengguna berhasil diambil"
+                code: 200
+                data:
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    user:
+                      id: 1
+                      nama: "John Doe"
+                      email: "john.doe@example.com"
+                      role: "Premium User"
+                    subscription_plan:
+                      id: "550e8400-e29b-41d4-a716-446655440010"
+                      nama: "PRO Monthly"
+                      harga: 99000
+                    status: "active"
+                    current_period_start: "2024-01-01T00:00:00Z"
+                    current_period_end: "2024-02-01T00:00:00Z"
+                    payment_method: "Bank Transfer"
+                    created_at: "2024-01-01T00:00:00Z"
+                    updated_at: "2024-01-01T00:00:00Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440002"
+                    user:
+                      id: 2
+                      nama: "Jane Smith"
+                      email: "jane.smith@example.com"
+                      role: "Basic User"
+                    subscription_plan:
+                      id: "550e8400-e29b-41d4-a716-446655440011"
+                      nama: "Basic Monthly"
+                      harga: 49000
+                    status: "trialing"
+                    current_period_start: "2024-01-15T00:00:00Z"
+                    current_period_end: "2024-02-15T00:00:00Z"
+                    payment_method: "Credit Card"
+                    created_at: "2024-01-15T00:00:00Z"
+                    updated_at: "2024-01-15T00:00:00Z"
+                meta:
+                  current_page: 1
+                  total_pages: 5
+                  total_records: 50
+                  per_page: 10
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Token tidak valid atau sudah expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '403':
+          description: Akses ditolak - tidak memiliki permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Anda tidak memiliki akses untuk melihat data ini"
+                code: 403
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-01-01T00:00:00Z"
+      security:
+        - BearerAuth: []
+
+  /user-subscriptions/{id}:
+    get:
+      tags:
+        - User Subscription Management
+      summary: Dapatkan detail subscription pengguna
+      description: Endpoint untuk mendapatkan detail subscription pengguna berdasarkan ID
+      operationId: getUserSubscriptionDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID subscription pengguna
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      responses:
+        '200':
+          description: Detail subscription pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionDetailResponse'
+              example:
+                success: true
+                message: "Detail subscription pengguna berhasil diambil"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  user:
+                    id: 1
+                    nama: "John Doe"
+                    email: "john.doe@example.com"
+                    role: "Premium User"
+                    is_active: true
+                    created_at: "2023-12-01T00:00:00Z"
+                  subscription_plan:
+                    id: "550e8400-e29b-41d4-a716-446655440010"
+                    kode: "PRO_MONTHLY_ABC"
+                    nama: "PRO Monthly"
+                    harga: 99000
+                    interval: "bulan"
+                    hari_percobaan: 7
+                    status: "aktif"
+                  status: "active"
+                  current_period_start: "2024-01-01T00:00:00Z"
+                  current_period_end: "2024-02-01T00:00:00Z"
+                  trial_end: "2024-01-08T00:00:00Z"
+                  payment_method: "Bank Transfer"
+                  payment_status: "paid"
+                  cancel_at_period_end: false
+                  canceled_at: null
+                  ended_at: null
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T00:00:00Z"
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Token tidak valid atau sudah expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '403':
+          description: Akses ditolak - tidak memiliki permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Anda tidak memiliki akses untuk melihat data ini"
+                code: 403
+                timestamp: "2024-01-01T00:00:00Z"
+        '404':
+          description: Subscription pengguna tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Subscription pengguna tidak ditemukan"
+                code: 404
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-01-01T00:00:00Z"
+      security:
+        - BearerAuth: []
+
+    patch:
+      tags:
+        - User Subscription Management
+      summary: Update status subscription pengguna
+      description: Endpoint untuk mengupdate status subscription pengguna (pause, activate, cancel)
+      operationId: updateUserSubscriptionStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID subscription pengguna
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserSubscriptionRequest'
+            example:
+              action: "pause"
+              reason: "Pengguna meminta pause subscription sementara"
+      responses:
+        '200':
+          description: Status subscription pengguna berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionDetailResponse'
+              example:
+                success: true
+                message: "Status subscription pengguna berhasil diupdate"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  user:
+                    id: 1
+                    nama: "John Doe"
+                    email: "john.doe@example.com"
+                    role: "Premium User"
+                  subscription_plan:
+                    id: "550e8400-e29b-41d4-a716-446655440010"
+                    nama: "PRO Monthly"
+                    harga: 99000
+                  status: "paused"
+                  current_period_start: "2024-01-01T00:00:00Z"
+                  current_period_end: "2024-02-01T00:00:00Z"
+                  payment_method: "Bank Transfer"
+                  payment_status: "paid"
+                  cancel_at_period_end: false
+                  canceled_at: null
+                  ended_at: null
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T08:30:00Z"
+                timestamp: "2024-01-01T08:30:00Z"
+        '400':
+          description: Data validasi tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                success: false
+                message: "Data yang diberikan tidak valid"
+                code: 400
+                errors:
+                  - field: "action"
+                    message: "Action harus berupa pause, activate, atau cancel"
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Token tidak valid atau sudah expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '403':
+          description: Akses ditolak - tidak memiliki permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Anda tidak memiliki akses untuk mengubah data ini"
+                code: 403
+                timestamp: "2024-01-01T00:00:00Z"
+        '404':
+          description: Subscription pengguna tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Subscription pengguna tidak ditemukan"
+                code: 404
+                timestamp: "2024-01-01T00:00:00Z"
+        '409':
+          description: Konflik - status tidak dapat diubah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Subscription yang sudah dibatalkan tidak dapat diubah"
+                code: 409
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-01-01T00:00:00Z"
+      security:
+        - BearerAuth: []
+
+  /user-subscriptions/{id}/payment-method:
+    patch:
+      tags:
+        - User Subscription Management
+      summary: Update metode pembayaran subscription
+      description: Endpoint untuk mengupdate metode pembayaran subscription pengguna
+      operationId: updateUserSubscriptionPaymentMethod
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID subscription pengguna
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentMethodRequest'
+            example:
+              payment_method: "PayPal"
+      responses:
+        '200':
+          description: Metode pembayaran berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionDetailResponse'
+              example:
+                success: true
+                message: "Metode pembayaran berhasil diupdate"
+                code: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440001"
+                  user:
+                    id: 1
+                    nama: "John Doe"
+                    email: "john.doe@example.com"
+                    role: "Premium User"
+                  subscription_plan:
+                    id: "550e8400-e29b-41d4-a716-446655440010"
+                    nama: "PRO Monthly"
+                    harga: 99000
+                  status: "active"
+                  current_period_start: "2024-01-01T00:00:00Z"
+                  current_period_end: "2024-02-01T00:00:00Z"
+                  payment_method: "PayPal"
+                  payment_status: "paid"
+                  cancel_at_period_end: false
+                  canceled_at: null
+                  ended_at: null
+                  created_at: "2024-01-01T00:00:00Z"
+                  updated_at: "2024-01-01T08:45:00Z"
+                timestamp: "2024-01-01T08:45:00Z"
+        '400':
+          description: Data validasi tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                success: false
+                message: "Data yang diberikan tidak valid"
+                code: 400
+                errors:
+                  - field: "payment_method"
+                    message: "Metode pembayaran wajib diisi"
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Token tidak valid atau sudah expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '403':
+          description: Akses ditolak - tidak memiliki permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Anda tidak memiliki akses untuk mengubah data ini"
+                code: 403
+                timestamp: "2024-01-01T00:00:00Z"
+        '404':
+          description: Subscription pengguna tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Subscription pengguna tidak ditemukan"
+                code: 404
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-01-01T00:00:00Z"
+      security:
+        - BearerAuth: []
+
+  /user-subscriptions/statistics:
+    get:
+      tags:
+        - User Subscription Management
+      summary: Dapatkan statistik subscription pengguna
+      description: Endpoint untuk mendapatkan statistik subscription pengguna seperti total active, paused, trialing, dll
+      operationId: getUserSubscriptionStatistics
+      responses:
+        '200':
+          description: Statistik subscription pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionStatisticsResponse'
+              example:
+                success: true
+                message: "Statistik subscription pengguna berhasil diambil"
+                code: 200
+                data:
+                  total_subscriptions: 150
+                  active_subscriptions: 120
+                  paused_subscriptions: 20
+                  trialing_subscriptions: 10
+                  payment_methods:
+                    - method: "Bank Transfer"
+                      count: 75
+                      percentage: 50.0
+                    - method: "Credit Card"
+                      count: 45
+                      percentage: 30.0
+                    - method: "PayPal"
+                      count: 30
+                      percentage: 20.0
+                  monthly_revenue: 9500000
+                  yearly_revenue: 114000000
+                timestamp: "2024-01-01T00:00:00Z"
+        '401':
+          description: Token tidak valid atau sudah expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Token akses tidak valid"
+                code: 401
+                timestamp: "2024-01-01T00:00:00Z"
+        '403':
+          description: Akses ditolak - tidak memiliki permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Anda tidak memiliki akses untuk melihat data ini"
+                code: 403
+                timestamp: "2024-01-01T00:00:00Z"
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Terjadi kesalahan pada server"
+                code: 500
+                timestamp: "2024-01-01T00:00:00Z"
+      security:
+        - BearerAuth: []
+
+components:
+  schemas:
+    UserSubscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID unik subscription pengguna
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        user:
+          $ref: '#/components/schemas/UserInfo'
+        subscription_plan:
+          $ref: '#/components/schemas/SubscriptionPlanInfo'
+        status:
+          type: string
+          enum: [active, paused, trialing, canceled, ended]
+          description: Status subscription pengguna
+          example: "active"
+        current_period_start:
+          type: string
+          format: date-time
+          description: Tanggal mulai periode langganan saat ini
+          example: "2024-01-01T00:00:00Z"
+        current_period_end:
+          type: string
+          format: date-time
+          description: Tanggal berakhir periode langganan saat ini
+          example: "2024-02-01T00:00:00Z"
+        payment_method:
+          type: string
+          description: Metode pembayaran yang digunakan
+          example: "Bank Transfer"
+        created_at:
+          type: string
+          format: date-time
+          description: Tanggal dibuat
+          example: "2024-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Tanggal terakhir diupdate
+          example: "2024-01-01T00:00:00Z"
+
+    UserSubscriptionDetail:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscription'
+        - type: object
+          properties:
+            trial_end:
+              type: string
+              format: date-time
+              description: Tanggal berakhir masa trial (jika ada)
+              example: "2024-01-08T00:00:00Z"
+            payment_status:
+              type: string
+              enum: [paid, pending, failed, refunded]
+              description: Status pembayaran terakhir
+              example: "paid"
+            cancel_at_period_end:
+              type: boolean
+              description: Apakah subscription akan dibatalkan di akhir periode
+              example: false
+            canceled_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Tanggal subscription dibatalkan (jika ada)
+              example: null
+            ended_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Tanggal subscription berakhir (jika ada)
+              example: null
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID pengguna
+          example: 1
+        nama:
+          type: string
+          description: Nama lengkap pengguna
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: Email pengguna
+          example: "john.doe@example.com"
+        role:
+          type: string
+          description: Role pengguna
+          example: "Premium User"
+        is_active:
+          type: boolean
+          description: Status aktif pengguna
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: Tanggal pengguna terdaftar
+          example: "2023-12-01T00:00:00Z"
+
+    SubscriptionPlanInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID subscription plan
+          example: "550e8400-e29b-41d4-a716-446655440010"
+        kode:
+          type: string
+          description: Kode unik subscription plan
+          example: "PRO_MONTHLY_ABC"
+        nama:
+          type: string
+          description: Nama subscription plan
+          example: "PRO Monthly"
+        harga:
+          type: number
+          format: float
+          description: Harga subscription plan
+          example: 99000
+        interval:
+          type: string
+          enum: [bulan, tahun]
+          description: Interval pembayaran
+          example: "bulan"
+        hari_percobaan:
+          type: integer
+          description: Jumlah hari masa percobaan
+          example: 7
+        status:
+          type: string
+          enum: [aktif, non aktif]
+          description: Status subscription plan
+          example: "aktif"
+
+    UpdateUserSubscriptionRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [pause, activate, cancel]
+          description: Aksi yang akan dilakukan pada subscription
+          example: "pause"
+        reason:
+          type: string
+          description: Alasan melakukan aksi (opsional)
+          example: "Pengguna meminta pause subscription sementara"
+
+    UpdatePaymentMethodRequest:
+      type: object
+      required:
+        - payment_method
+      properties:
+        payment_method:
+          type: string
+          description: Metode pembayaran baru
+          example: "PayPal"
+
+    UserSubscriptionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Daftar subscription pengguna berhasil diambil"
+        code:
+          type: integer
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSubscription'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    UserSubscriptionDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Detail subscription pengguna berhasil diambil"
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/UserSubscriptionDetail'
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    UserSubscriptionStatisticsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Statistik subscription pengguna berhasil diambil"
+        code:
+          type: integer
+          example: 200
+        data:
+          type: object
+          properties:
+            total_subscriptions:
+              type: integer
+              description: Total jumlah subscription
+              example: 150
+            active_subscriptions:
+              type: integer
+              description: Jumlah subscription aktif
+              example: 120
+            paused_subscriptions:
+              type: integer
+              description: Jumlah subscription yang di-pause
+              example: 20
+            trialing_subscriptions:
+              type: integer
+              description: Jumlah subscription dalam masa trial
+              example: 10
+            payment_methods:
+              type: array
+              items:
+                type: object
+                properties:
+                  method:
+                    type: string
+                    description: Metode pembayaran
+                    example: "Bank Transfer"
+                  count:
+                    type: integer
+                    description: Jumlah pengguna menggunakan metode ini
+                    example: 75
+                  percentage:
+                    type: number
+                    format: float
+                    description: Persentase pengguna menggunakan metode ini
+                    example: 50.0
+            monthly_revenue:
+              type: number
+              format: float
+              description: Pendapatan bulanan
+              example: 9500000
+            yearly_revenue:
+              type: number
+              format: float
+              description: Estimasi pendapatan tahunan
+              example: 114000000
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          description: Halaman saat ini
+          example: 1
+        total_pages:
+          type: integer
+          description: Total halaman
+          example: 5
+        total_records:
+          type: integer
+          description: Total jumlah record
+          example: 50
+        per_page:
+          type: integer
+          description: Jumlah record per halaman
+          example: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Terjadi kesalahan"
+        code:
+          type: integer
+          example: 400
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Data validasi tidak valid"
+        code:
+          type: integer
+          example: 400
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Format email tidak valid"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Access Token untuk autentikasi

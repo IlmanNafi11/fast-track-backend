@@ -108,6 +108,17 @@ type RoleRepository interface {
 	ValidatePermissions(permissionIDs []string) ([]string, error)
 }
 
+type UserSubscriptionRepository interface {
+	GetAll(req *domain.UserSubscriptionListRequest) ([]*domain.UserSubscription, int, error)
+	GetByID(id string) (*domain.UserSubscription, error)
+	UpdateStatus(id string, status string, reason *string) error
+	UpdatePaymentMethod(id string, paymentMethod string) error
+	GetStatistics() (*domain.UserSubscriptionStatistics, error)
+	Create(subscription *domain.UserSubscription) error
+	Update(subscription *domain.UserSubscription) error
+	Delete(id string) error
+}
+
 type RedisRepository interface {
 	Set(key string, value interface{}, ttl time.Duration) error
 	Get(key string) (string, error)
