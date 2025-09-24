@@ -218,5 +218,5 @@ func (c *KantongController) TransferKantong(ctx *fiber.Ctx) error {
 		}
 	}
 
-	return ctx.Status(result.Code).JSON(result)
+	return helper.SendSuccessResponse(ctx, result.Code, result.Message, result.Data)
 }

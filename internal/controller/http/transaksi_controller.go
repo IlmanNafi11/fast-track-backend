@@ -67,7 +67,7 @@ func (ctrl *TransaksiController) GetTransaksiList(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return c.Status(result.Code).JSON(result)
+	return helper.SendPaginatedResponse(c, result.Code, result.Message, result.Data, result.Meta)
 }
 
 func (ctrl *TransaksiController) GetTransaksiDetail(c *fiber.Ctx) error {
@@ -86,7 +86,7 @@ func (ctrl *TransaksiController) GetTransaksiDetail(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return c.Status(result.Code).JSON(result)
+	return helper.SendSuccessResponse(c, result.Code, result.Message, result.Data)
 }
 
 func (ctrl *TransaksiController) CreateTransaksi(c *fiber.Ctx) error {
@@ -115,7 +115,7 @@ func (ctrl *TransaksiController) CreateTransaksi(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(result)
+	return helper.SendSuccessResponse(c, fiber.StatusCreated, result.Message, result.Data)
 }
 
 func (ctrl *TransaksiController) UpdateTransaksi(c *fiber.Ctx) error {
@@ -152,7 +152,7 @@ func (ctrl *TransaksiController) UpdateTransaksi(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return c.Status(result.Code).JSON(result)
+	return helper.SendSuccessResponse(c, result.Code, result.Message, result.Data)
 }
 
 func (ctrl *TransaksiController) PatchTransaksi(c *fiber.Ctx) error {
@@ -189,7 +189,7 @@ func (ctrl *TransaksiController) PatchTransaksi(c *fiber.Ctx) error {
 		return helper.SendInternalServerErrorResponse(c)
 	}
 
-	return c.Status(result.Code).JSON(result)
+	return helper.SendSuccessResponse(c, result.Code, result.Message, result.Data)
 }
 
 func (ctrl *TransaksiController) DeleteTransaksi(c *fiber.Ctx) error {

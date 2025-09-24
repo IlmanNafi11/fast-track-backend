@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func SendSuccessResponse(c *fiber.Ctx, code int, message string, data interface{}) error {
@@ -54,6 +55,13 @@ func SendValidationErrorResponse(c *fiber.Ctx, validationErrors []domain.Validat
 }
 
 func SendInternalServerErrorResponse(c *fiber.Ctx) error {
+	Error("Internal server error occurred", nil, logrus.Fields{
+		"path":       c.Path(),
+		"method":     c.Method(),
+		"user_agent": c.Get("User-Agent"),
+		"ip":         c.IP(),
+	})
+
 	return SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", nil)
 }
 

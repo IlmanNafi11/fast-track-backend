@@ -40,7 +40,7 @@ func (ctrl *LaporanController) GetRingkasanLaporan(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetStatistikTahunan(c *fiber.Ctx) error {
@@ -65,7 +65,7 @@ func (ctrl *LaporanController) GetStatistikTahunan(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetStatistikKantongBulanan(c *fiber.Ctx) error {
@@ -98,7 +98,7 @@ func (ctrl *LaporanController) GetStatistikKantongBulanan(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetTopKantongPengeluaran(c *fiber.Ctx) error {
@@ -139,7 +139,7 @@ func (ctrl *LaporanController) GetTopKantongPengeluaran(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetStatistikKantongPeriode(c *fiber.Ctx) error {
@@ -163,7 +163,7 @@ func (ctrl *LaporanController) GetStatistikKantongPeriode(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
@@ -187,7 +187,7 @@ func (ctrl *LaporanController) GetPengeluaranKantongDetail(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetTrenBulanan(c *fiber.Ctx) error {
@@ -212,7 +212,7 @@ func (ctrl *LaporanController) GetTrenBulanan(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetPerbandinganKantong(c *fiber.Ctx) error {
@@ -223,7 +223,7 @@ func (ctrl *LaporanController) GetPerbandinganKantong(c *fiber.Ctx) error {
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
 
 func (ctrl *LaporanController) GetDetailPerbandinganKantong(c *fiber.Ctx) error {
@@ -234,5 +234,5 @@ func (ctrl *LaporanController) GetDetailPerbandinganKantong(c *fiber.Ctx) error 
 		return helper.SendErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan pada server", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return helper.SendSuccessResponse(c, fiber.StatusOK, response.Message, response.Data)
 }
